@@ -107,3 +107,13 @@ func (b *Board) pawnCaptureBitboards() (east uint64, west uint64) {
 	}
 	return
 }
+
+func (b *Board) knightMoves(moveList *[]Move) {
+
+}
+
+func (b *Board) whiteKnightBitboards() {
+	//ourKnights := b.white.knights
+	//friendlyPieces := b.white.all
+
+}

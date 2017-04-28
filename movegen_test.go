@@ -121,3 +121,41 @@ func TestPawnPosition1(t *testing.T) {
 		t.Error("Pawn push moves: wrong length. Expected 9, got", len(movesc2))
 	}
 }
+
+func TestKnightPosition0(t *testing.T) {
+	// Board setup:
+	// WN  57  WN  59  60  61  WN  63	W: 2, 4, 3
+	// 48  49  50  51  52  53  WN  55	W: 4
+	// 40  BN  42  BP  44  45  46  47	B: 5
+	// 32  33  WN  35  36  BN  38  39	W: 7	B: 7
+	// BN  25  26  27  28  29  30  31	B: 3
+	// 16  WP  18  BN  20  21  22  23	B: 6
+	// 8   9   10  11  12  13  BN  15	B: 4
+	// 0   1   2   3   4   5   6   7
+
+	var whitePawns uint64 = 1 << 17
+	var blackPawns uint64 = 1 << 43
+
+	// 0100010101000000000000000000010000000000000000000000000000000000
+	var whiteKnights uint64 = 0x4540000400000000
+
+	// 0000000000000000000000100010000000000001000010000100000000000000
+	var blackKnights uint64 = 0x22001084000
+
+	whitepieces := Bitboards{pawns: whitePawns, knights: whiteKnights, all: whitePawns | whiteKnights}
+	blackpieces := Bitboards{pawns: blackPawns, knights: blackKnights, all: blackPawns | blackKnights}
+	testboard := Board{white: whitepieces, black: blackpieces, wtomove: true}
+
+	moves := make([]Move, 0, 45)
+	testboard.knightMoves(&moves)
+	if len(moves) != 20 {
+		t.Error("Knight moves: wrong length. Expected 20, got", len(moves))
+	}
+
+	testboard.wtomove = false
+	moves2 := make([]Move, 0, 45)
+	testboard.knightMoves(&moves2)
+	if len(moves2) != 25 {
+		t.Error("Knight moves: wrong length. Expected 25, got", len(moves2))
+	}
+}

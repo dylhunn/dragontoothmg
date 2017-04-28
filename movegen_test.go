@@ -9,16 +9,16 @@ func TestWhitePawnPush(t *testing.T) {
 	var whitePawnsBefore uint64 = 0xFF00 // white on second rank
 	var whitePawnsAfter uint64 = 0xFCFD0000
 	var blackPawns uint64 = 0x1020000 // black on 24 and 17
-	whitepieces := pieces{pawns: whitePawnsBefore, all: whitePawnsBefore}
-	blackpieces := pieces{pawns: blackPawns, all: blackPawns}
+	whitepieces := Bitboards{pawns: whitePawnsBefore, all: whitePawnsBefore}
+	blackpieces := Bitboards{pawns: blackPawns, all: blackPawns}
 	testboard := Board{white: whitepieces, black: blackpieces, wtomove: true}
-	moves := make([]Move, 0)
+	moves := make([]Move, 0, 45)
 	testboard.whitePawnPushes(&moves)
 	for _, v := range moves {
-		if ((1 << v.to) & whitePawnsAfter) == 0 {
+		if ((1 << v.to()) & whitePawnsAfter) == 0 {
 			t.Error("Generated move was not expected:", v)
 		}
-		whitePawnsAfter -= 1 << v.to
+		whitePawnsAfter -= 1 << v.to()
 	}
 	if whitePawnsAfter != 0 {
 		t.Error("An expected move was not found to square", bits.TrailingZeros64(whitePawnsAfter))
@@ -41,10 +41,10 @@ func TestWhitePawnCapture(t *testing.T) {
 	var blackPawns uint64 = 0x406000000      // black on 25, 26, 34
 	var blackKnight uint64 = 1 << 61         // black on 61 (for capture promotion)
 	// en passant target is 42
-	whitepieces := pieces{pawns: whitePawns, all: whitePawns}
-	blackpieces := pieces{pawns: blackPawns, knights: blackKnight, all: blackPawns | blackKnight}
+	whitepieces := Bitboards{pawns: whitePawns, all: whitePawns}
+	blackpieces := Bitboards{pawns: blackPawns, knights: blackKnight, all: blackPawns | blackKnight}
 	testboard := Board{white: whitepieces, black: blackpieces, wtomove: true, enpassant: 42}
-	moves := make([]Move, 0)
+	moves := make([]Move, 0, 45)
 	testboard.whitePawnCaptures(&moves)
 	if len(moves) != 6 {
 		t.Error("Pawn capture moves: wrong length. Expected 6, got", len(moves))

@@ -1,5 +1,9 @@
 package main
 
+import (
+	"fmt"
+)
+
 // Each bitboard shall use little-endian rank-file mapping:
 // 56  57  58  59  60  61  62  63
 // 48  49  50  51  52  53  54  55
@@ -14,10 +18,10 @@ package main
 // H8 G8 F8 E8 D8 C8 B8 A8 H7 ... A2 H1 G1 F1 E1 D1 C1 B1 A1
 
 type Board struct {
-	wtomove bool
+	wtomove   bool
 	enpassant uint8 // square id (16-23 or 40-47) where en passant capture is possible
-	white Bitboards
-	black Bitboards
+	white     Bitboards
+	black     Bitboards
 }
 
 type Bitboards struct {
@@ -36,26 +40,30 @@ type Bitboards struct {
 // 6 bits: source square
 // 3 bits: promotion
 type Move uint32
-func (m *Move) to() Square {
+
+func (m *Move) To() Square {
 	return Square(*m & 0x3F)
 }
-func (m *Move) from() Square {
+func (m *Move) From() Square {
 	return Square((*m & 0xFC0) >> 6)
 }
-func (m *Move) promote() Piece {
+func (m *Move) Promote() Piece {
 	return Piece((*m & 0x7000) >> 12)
 }
-func (m *Move) setto(s Square) *Move {
+func (m *Move) Setto(s Square) *Move {
 	*m = *m & ^(Move(0x3F)) | Move(s)
 	return m
 }
-func (m *Move) setfrom(s Square) *Move {
+func (m *Move) Setfrom(s Square) *Move {
 	*m = *m & ^(Move(0xFC0)) | (Move(s) << 6)
 	return m
 }
-func (m *Move) setpromote(p Piece) *Move {
+func (m *Move) Setpromote(p Piece) *Move {
 	*m = *m & ^(Move(0x7000)) | (Move(p) << 12)
 	return m
+}
+func (m *Move) String() string {
+	return fmt.Sprintf("[from: %v, to: %v, promote: %v]", m.From(), m.To(), m.Promote())
 }
 
 // Square index values from 0-63
@@ -63,6 +71,7 @@ type Square uint8
 
 // Piece types; valid in range 0-6
 type Piece uint8
+
 const (
 	nothing = iota
 	pawn    = iota

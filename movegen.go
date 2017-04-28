@@ -1,10 +1,8 @@
 package main
 
 import (
-	"fmt"
 	"math/bits"
 )
-
 
 func (b *Board) whitePawnPushes(moveList *[]Move) {
 	targets, doubleTargets := b.whitePawnPushBitboards()
@@ -13,10 +11,10 @@ func (b *Board) whitePawnPushes(moveList *[]Move) {
 		target := bits.TrailingZeros64(targets)
 		targets &= targets - 1 // unset the lowest active bit
 		var move Move
-		move.setfrom(Square(target - 8)).setto(Square(target))
+		move.Setfrom(Square(target - 8)).Setto(Square(target))
 		if target >= 56 { // promotion
 			for i := Piece(knight); i <= queen; i++ {
-				move.setpromote(i)
+				move.Setpromote(i)
 				*moveList = append(*moveList, move)
 			}
 		} else {
@@ -28,7 +26,7 @@ func (b *Board) whitePawnPushes(moveList *[]Move) {
 		doubleTarget := bits.TrailingZeros64(doubleTargets)
 		doubleTargets &= doubleTargets - 1 // unset the lowest active bit
 		var move Move
-		move.setfrom(Square(doubleTarget - 16)).setto(Square(doubleTarget))
+		move.Setfrom(Square(doubleTarget - 16)).Setto(Square(doubleTarget))
 		*moveList = append(*moveList, move)
 	}
 }
@@ -41,59 +39,55 @@ func (b *Board) whitePawnPushBitboards() (targets uint64, doubleTargets uint64) 
 	return
 }
 
-func (b *Board) whitePawnCaptures(moveList *[]Move) {
-	east, west := b.whitePawnCaptureBitboards()
-	for east != 0 {
-		target := bits.TrailingZeros64(east)
-		east &= east - 1
-		var move Move
-		move.setfrom(Square(target - 9)).setto(Square(target))
-		if target >= 56 { // promotion
-			for i := Piece(knight); i <= queen; i++ {
-				move.setpromote(i)
-				*moveList = append(*moveList, move)
+func (b *Board) pawnCaptures(moveList *[]Move) {
+	east, west := b.pawnCaptureBitboards()
+	bitboards := [2]uint64{east, west}
+	if !b.wtomove {
+		bitboards[0], bitboards[1] = bitboards[1], bitboards[0]
+	}
+	for dir, board := range bitboards { // for east and west
+		for board != 0 {
+			target := bits.TrailingZeros64(board)
+			board &= board - 1
+			var move Move
+			move.Setto(Square(target))
+			canPromote := false
+			if b.wtomove {
+				move.Setfrom(Square(target - (9 - (dir * 2))))
+				canPromote = target >= 56
+			} else {
+				move.Setfrom(Square(target + (9 - (dir * 2))))
+				canPromote = target <= 7
 			}
-		} else {
+			if canPromote {
+				for i := Piece(knight); i <= queen; i++ {
+					move.Setpromote(i)
+					*moveList = append(*moveList, move)
+				}
+				continue
+			}
 			*moveList = append(*moveList, move)
 		}
 	}
-	for west != 0 {
-		target := bits.TrailingZeros64(west)
-		west &= west - 1
-		var move Move
-		move.setfrom(Square(target - 7)).setto(Square(target))
-		if target >= 56 { // promotion
-			for i := Piece(knight); i <= queen; i++ {
-				move.setpromote(i)
-				*moveList = append(*moveList, move)
-			}
-		} else {
-			*moveList = append(*moveList, move)
-		}
-	}
-
 }
 
-func (b *Board) whitePawnCaptureBitboards() (east uint64, west uint64) {
+func (b *Board) pawnCaptureBitboards() (east uint64, west uint64) {
 	notAFile := uint64(0x7F7F7F7F7F7F7F7F)
 	notHFile := uint64(0xFEFEFEFEFEFEFEFE)
-	blacktargets := b.black.all
-	if b.enpassant >= 40 { // a black en-passant target exists
-		blacktargets |= (1 << b.enpassant)
+	var targets uint64
+	if b.enpassant > 0 { // an en-passant target is active
+		targets = (1 << b.enpassant)
 	}
-	east = b.white.pawns << 9 & notAFile & blacktargets
-	west = b.white.pawns << 7 & notHFile & blacktargets
+	if b.wtomove {
+		targets |= b.black.all
+		ourpawns := b.white.pawns
+		east = ourpawns << 9 & notAFile & targets
+		west = ourpawns << 7 & notHFile & targets
+	} else {
+		targets |= b.white.all
+		ourpawns := b.black.pawns
+		east = ourpawns >> 7 & notAFile & targets
+		west = ourpawns >> 9 & notHFile & targets
+	}
 	return
-}
-
-
-
-
-
-
-func main() {
-	var test uint16 = 1
-	var test2 uint64 = 0
-
-	fmt.Printf("%v d%v %v %v\n", test, test<<8, ^test, bits.TrailingZeros64(test2))
 }

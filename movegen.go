@@ -4,15 +4,25 @@ import (
 	"math/bits"
 )
 
-func (b *Board) whitePawnPushes(moveList *[]Move) {
-	targets, doubleTargets := b.whitePawnPushBitboards()
+func (b *Board) pawnPushes(moveList *[]Move) {
+	targets, doubleTargets := b.pawnPushBitboards()
+	oneRankBack := 8
+	if b.wtomove {
+		oneRankBack = -oneRankBack
+	}
 	// push all pawns by one square
 	for targets != 0 {
 		target := bits.TrailingZeros64(targets)
 		targets &= targets - 1 // unset the lowest active bit
+		var canPromote bool
+		if b.wtomove {
+			canPromote = target >= 56
+		} else {
+			canPromote = target <= 7
+		}
 		var move Move
-		move.Setfrom(Square(target - 8)).Setto(Square(target))
-		if target >= 56 { // promotion
+		move.Setfrom(Square(target + oneRankBack)).Setto(Square(target))
+		if canPromote {
 			for i := Piece(knight); i <= queen; i++ {
 				move.Setpromote(i)
 				*moveList = append(*moveList, move)
@@ -26,16 +36,22 @@ func (b *Board) whitePawnPushes(moveList *[]Move) {
 		doubleTarget := bits.TrailingZeros64(doubleTargets)
 		doubleTargets &= doubleTargets - 1 // unset the lowest active bit
 		var move Move
-		move.Setfrom(Square(doubleTarget - 16)).Setto(Square(doubleTarget))
+		move.Setfrom(Square(doubleTarget + 2*oneRankBack)).Setto(Square(doubleTarget))
 		*moveList = append(*moveList, move)
 	}
 }
 
-func (b *Board) whitePawnPushBitboards() (targets uint64, doubleTargets uint64) {
+func (b *Board) pawnPushBitboards() (targets uint64, doubleTargets uint64) {
 	free := (^b.white.all) & (^b.black.all)
-	targets = b.white.pawns << 8 & free
-	fourthFile := uint64(0xFF000000)
-	doubleTargets = targets << 8 & fourthFile & free
+	if b.wtomove {
+		targets = b.white.pawns << 8 & free
+		fourthFile := uint64(0xFF000000)
+		doubleTargets = targets << 8 & fourthFile & free
+	} else {
+		targets = b.black.pawns >> 8 & free
+		fifthFile := uint64(0xFF00000000)
+		doubleTargets = targets >> 8 & fifthFile & free
+	}
 	return
 }
 

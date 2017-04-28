@@ -13,7 +13,7 @@ func TestWhitePawnPush(t *testing.T) {
 	blackpieces := Bitboards{pawns: blackPawns, all: blackPawns}
 	testboard := Board{white: whitepieces, black: blackpieces, wtomove: true}
 	moves := make([]Move, 0, 45)
-	testboard.whitePawnPushes(&moves)
+	testboard.pawnPushes(&moves)
 	for _, v := range moves {
 		if ((1 << v.To()) & whitePawnsAfter) == 0 {
 			t.Error("Generated move was not expected:", v)
@@ -28,7 +28,7 @@ func TestWhitePawnPush(t *testing.T) {
 	}
 }
 
-func TestPawnCapturePosition0(t *testing.T) {
+func TestPawnPosition0(t *testing.T) {
 	// Board setup:
 	// 56  57  58  59  60  BN  62  63
 	// 48  49  50  51  52  53  WW  55
@@ -47,10 +47,17 @@ func TestPawnCapturePosition0(t *testing.T) {
 	whitepieces := Bitboards{pawns: whitePawns, all: whitePawns}
 	blackpieces := Bitboards{pawns: blackPawns, knights: blackKnight, all: blackPawns | blackKnight}
 	testboard := Board{white: whitepieces, black: blackpieces, wtomove: true, enpassant: 42}
+
 	moves := make([]Move, 0, 45)
 	testboard.pawnCaptures(&moves)
 	if len(moves) != 6 {
 		t.Error("Pawn capture moves: wrong length. Expected 6, got", len(moves))
+	}
+
+	movesc := make([]Move, 0, 45)
+	testboard.pawnPushes(&movesc)
+	if len(movesc) != 8 {
+		t.Error("Pawn push moves: wrong length. Expected 8, got", len(movesc))
 	}
 
 	testboard.wtomove = false
@@ -60,9 +67,15 @@ func TestPawnCapturePosition0(t *testing.T) {
 	if len(moves2) != 1 {
 		t.Error("Pawn capture moves: wrong length. Expected 1, got", len(moves2))
 	}
+
+	movesc2 := make([]Move, 0, 45)
+	testboard.pawnPushes(&movesc2)
+	if len(movesc2) != 1 {
+		t.Error("Pawn push moves: wrong length. Expected 1, got", len(movesc2))
+	}
 }
 
-func TestPawnCapturePosition1(t *testing.T) {
+func TestPawnPosition1(t *testing.T) {
 	// Board setup:
 	// 56  57  58  59  60  61  62  63
 	// 48  49  50  51  52  53  BB  55
@@ -81,10 +94,17 @@ func TestPawnCapturePosition1(t *testing.T) {
 	whitepieces := Bitboards{pawns: whitePawns, knights: whiteKnight, all: whitePawns | whiteKnight}
 	blackpieces := Bitboards{pawns: blackPawns, all: blackPawns}
 	testboard := Board{white: whitepieces, black: blackpieces, wtomove: false, enpassant: 19}
+
 	moves := make([]Move, 0, 45)
 	testboard.pawnCaptures(&moves)
 	if len(moves) != 7 {
 		t.Error("Pawn capture moves: wrong length. Expected 7, got", len(moves))
+	}
+
+	movesc := make([]Move, 0, 45)
+	testboard.pawnPushes(&movesc)
+	if len(movesc) != 9 {
+		t.Error("Pawn push moves: wrong length. Expected 9, got", len(movesc))
 	}
 
 	testboard.wtomove = true
@@ -93,5 +113,11 @@ func TestPawnCapturePosition1(t *testing.T) {
 	testboard.pawnCaptures(&moves2)
 	if len(moves2) != 2 {
 		t.Error("Pawn capture moves: wrong length. Expected 2, got", len(moves2))
+	}
+
+	movesc2 := make([]Move, 0, 45)
+	testboard.pawnPushes(&movesc2)
+	if len(movesc2) != 9 {
+		t.Error("Pawn push moves: wrong length. Expected 9, got", len(movesc2))
 	}
 }

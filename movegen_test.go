@@ -129,7 +129,7 @@ func TestKnightPosition0(t *testing.T) {
 	// 40  BN  42  BP  44  45  46  47	B: 5
 	// 32  33  WN  35  36  BN  38  39	W: 7	B: 7
 	// BN  25  26  27  28  29  30  31	B: 3
-	// 16  WP  18  BN  20  21  22  23	B: 6
+	// 16  WP  18  BN  20  21  22  23	B: 8
 	// 8   9   10  11  12  13  BN  15	B: 4
 	// 0   1   2   3   4   5   6   7
 
@@ -155,7 +155,7 @@ func TestKnightPosition0(t *testing.T) {
 	testboard.wtomove = false
 	moves2 := make([]Move, 0, 45)
 	testboard.knightMoves(&moves2)
-	if len(moves2) != 25 {
-		t.Error("Knight moves: wrong length. Expected 25, got", len(moves2))
+	if len(moves2) != 27 {
+		t.Error("Knight moves: wrong length. Expected 27, got", len(moves2))
 	}
 }

@@ -109,11 +109,26 @@ func (b *Board) pawnCaptureBitboards() (east uint64, west uint64) {
 }
 
 func (b *Board) knightMoves(moveList *[]Move) {
-
+	var ourKnights uint64
+	var noFriendlyPieces uint64
+	if (b.wtomove) {
+		ourKnights = b.white.knights
+		noFriendlyPieces = (^b.white.all)
+	} else {
+		ourKnights = b.black.knights
+		noFriendlyPieces = (^b.black.all)
+	}
+	for ourKnights != 0 {
+		currentKnight := bits.TrailingZeros64(ourKnights)
+		ourKnights &= ourKnights - 1
+		targets := knightMasks[currentKnight] & noFriendlyPieces
+		for (targets != 0) {
+			target := bits.TrailingZeros64(targets)
+			targets &= targets - 1
+			var move Move
+			move.Setfrom(Square(currentKnight)).Setto(Square(target))
+			*moveList = append(*moveList, move)
+		}
+	}
 }
 
-func (b *Board) whiteKnightBitboards() {
-	//ourKnights := b.white.knights
-	//friendlyPieces := b.white.all
-
-}

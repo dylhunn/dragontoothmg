@@ -159,3 +159,19 @@ func TestKnightPosition0(t *testing.T) {
 		t.Error("Knight moves: wrong length. Expected 27, got", len(moves2))
 	}
 }
+
+func TestKingPositions(t *testing.T) {
+	testboard := ParseFen("1Q2rk2/2p2p2/1n4b1/N7/2B1Pp1q/2B4P/1QPP1P2/4K2R b K e3 4 30")
+	moves := make([]Move, 0, 45)
+	testboard.kingMoves(&moves)
+	if len(moves) != 3 {
+		t.Error("King moves: wrong length. Expected 3, got", len(moves))
+	}
+	testboard.wtomove = true
+	moves2 := make([]Move, 0, 45)
+	testboard.kingMoves(&moves2)
+	if len(moves2) != 4 {
+		t.Error("King moves: wrong length. Expected 4, got", len(moves2))
+	}
+}
+

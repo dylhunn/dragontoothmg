@@ -1,7 +1,8 @@
 package main
 
 import (
-	"fmt"
+	"fmt",
+	"strings"
 )
 
 // Each bitboard shall use little-endian rank-file mapping:
@@ -20,8 +21,50 @@ import (
 type Board struct {
 	wtomove   bool
 	enpassant uint8 // square id (16-23 or 40-47) where en passant capture is possible
+	castlerights uint8
 	white     Bitboards
 	black     Bitboards
+}
+
+func ParseFen(fen string) Board {
+	tokens := strings.Fields(fen)
+	var b Board
+	b.
+}
+
+// Castle rights helpers. Data stored inside, from LSB:
+// 1 bit: White castle queenside
+// 1 bit: White castle kingside
+// 1 bit: Black castle queenside
+// 1 bit: Black castle kingside
+// This just indicates whether castling rights have been lost, not whether
+// castling is actually possible.
+func (b *Board) CanCastleKingside() bool {
+	return b.castlerights & 1 == 1
+}
+func (b *Board) WhiteCanCastleQueenside() bool {
+	return b.castlerights & 1 == 1
+}
+func (b *Board) WhiteCanCastleKingside() bool {
+	return (b.castlerights & 0x2) >> 1 == 1
+}
+func (b *Board) BlackCanCastleQueenside() bool {
+	return (b.castlerights & 0x4) >> 2 == 1
+}
+func (b *Board) BlackCanCastleKingside() bool {
+	return (b.castlerights & 0x8) >> 3 == 1
+}
+func (b *Board) FlipWhiteQueensideCastle() {
+	b.castlerights = b.castlerights ^ (1)
+}
+func (b *Board) FlipWhiteKingsideCastle() {
+	b.castlerights = b.castlerights ^ (1 << 1)
+}
+func (b *Board) FlipBlackQueensideCastle() {
+	b.castlerights = b.castlerights ^ (1 << 2)
+}
+func (b *Board) FlipBlackKingsideCastle() {
+	b.castlerights = b.castlerights ^ (1 << 3)
 }
 
 type Bitboards struct {
@@ -82,7 +125,7 @@ const (
 	king    = iota
 )
 
-// Masks for knight attacks
+// Masks for attacks
 // In order: knight on A1, B1, C1, ... F8, G8, H8
 var knightMasks = [64]uint64{0x20400, 0x50800, 0xa1100, 0x142200,
 	0x284400, 0x508800, 0xa01000, 0x402000, 0x2040004, 0x5080008, 0xa110011,
@@ -100,3 +143,17 @@ var knightMasks = [64]uint64{0x20400, 0x50800, 0xa1100, 0x142200,
 	0x2000204000000000, 0x4020000000000, 0x8050000000000, 0x110a0000000000,
 	0x22140000000000, 0x44280000000000, 0x88500000000000, 0x10a00000000000,
 	0x20400000000000}
+var kingMasks = [64]uint64{0x302, 0x705, 0xe0a, 0x1c14, 0x3828, 0x7050, 0xe0a0,
+	0xc040, 0x30203, 0x70507, 0xe0a0e, 0x1c141c, 0x382838, 0x705070, 0xe0a0e0,
+	0xc040c0, 0x3020300, 0x7050700, 0xe0a0e00, 0x1c141c00, 0x38283800,
+	0x70507000, 0xe0a0e000, 0xc040c000, 0x302030000, 0x705070000, 0xe0a0e0000,
+	0x1c141c0000, 0x3828380000, 0x7050700000, 0xe0a0e00000, 0xc040c00000,
+	0x30203000000, 0x70507000000, 0xe0a0e000000, 0x1c141c000000, 0x382838000000,
+	0x705070000000, 0xe0a0e0000000, 0xc040c0000000, 0x3020300000000,
+	0x7050700000000, 0xe0a0e00000000, 0x1c141c00000000, 0x38283800000000,
+	0x70507000000000, 0xe0a0e000000000, 0xc040c000000000, 0x302030000000000,
+	0x705070000000000, 0xe0a0e0000000000, 0x1c141c0000000000,
+	0x3828380000000000, 0x7050700000000000, 0xe0a0e00000000000,
+	0xc040c00000000000, 0x203000000000000, 0x507000000000000, 0xa0e000000000000,
+	0x141c000000000000, 0x2838000000000000, 0x5070000000000000,
+	0xa0e0000000000000, 0x40c0000000000000}

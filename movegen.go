@@ -111,7 +111,7 @@ func (b *Board) pawnCaptureBitboards() (east uint64, west uint64) {
 func (b *Board) knightMoves(moveList *[]Move) {
 	var ourKnights uint64
 	var noFriendlyPieces uint64
-	if (b.wtomove) {
+	if b.wtomove {
 		ourKnights = b.white.knights
 		noFriendlyPieces = (^b.white.all)
 	} else {
@@ -122,7 +122,7 @@ func (b *Board) knightMoves(moveList *[]Move) {
 		currentKnight := bits.TrailingZeros64(ourKnights)
 		ourKnights &= ourKnights - 1
 		targets := knightMasks[currentKnight] & noFriendlyPieces
-		for (targets != 0) {
+		for targets != 0 {
 			target := bits.TrailingZeros64(targets)
 			targets &= targets - 1
 			var move Move
@@ -139,19 +139,19 @@ func (b *Board) kingMoves(moveList *[]Move) {
 	var canCastleQueenside bool
 	var canCastleKingside bool
 	allPieces := b.white.all & b.black.all
-	if (b.wtomove) {
+	if b.wtomove {
 		ourKingLocation = uint8(bits.TrailingZeros64(b.white.kings))
 		noFriendlyPieces = ^(b.white.all)
 		// To castle, we must have rights and a clear path
-		kingsideClear := allPieces & (1 << 5) & (1 << 6) == 0
-		queensideClear := allPieces & (1 << 3) & (1 << 2) & (1 << 1) == 0
+		kingsideClear := allPieces&(1<<5)&(1<<6) == 0
+		queensideClear := allPieces&(1<<3)&(1<<2)&(1<<1) == 0
 		canCastleQueenside = b.WhiteCanCastleQueenside() && queensideClear
 		canCastleKingside = b.WhiteCanCastleKingside() && kingsideClear
 	} else {
 		ourKingLocation = uint8(bits.TrailingZeros64(b.black.kings))
 		noFriendlyPieces = ^(b.black.all)
-		kingsideClear := allPieces & (1 << 61) & (1 << 62) == 0
-		queensideClear := allPieces & (1 << 57) & (1 << 58) & (1 << 59) == 0
+		kingsideClear := allPieces&(1<<61)&(1<<62) == 0
+		queensideClear := allPieces&(1<<57)&(1<<58)&(1<<59) == 0
 		canCastleQueenside = b.BlackCanCastleQueenside() && queensideClear
 		canCastleKingside = b.BlackCanCastleKingside() && kingsideClear
 	}
@@ -168,7 +168,7 @@ func (b *Board) kingMoves(moveList *[]Move) {
 
 	// This assumes only one king is present
 	targets := kingMasks[ourKingLocation] & noFriendlyPieces
-	for (targets != 0) {
+	for targets != 0 {
 		target := bits.TrailingZeros64(targets)
 		targets &= targets - 1
 		var move Move

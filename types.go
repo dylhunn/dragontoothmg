@@ -2,8 +2,6 @@ package main
 
 import (
 	"fmt"
-	"strconv"
-	"strings"
 )
 
 // Each bitboard shall use little-endian rank-file mapping:
@@ -25,78 +23,6 @@ type Board struct {
 	castlerights uint8
 	white        Bitboards
 	black        Bitboards
-}
-
-func ParseFen(fen string) Board {
-	tokens := strings.Fields(fen)
-	var b Board
-	// replace digits with the appropriate number of dashes
-	for i := 1; i <= 8; i++ {
-		var replacement string
-		for j := 0; j < i; j++ {
-			replacement += "-"
-		}
-		tokens[0] = strings.Replace(tokens[0], strconv.Itoa(i), replacement, -1)
-	}
-	// reverse the order of the ranks, removing slashes
-	ranks := strings.Split(tokens[0], "/")
-	for i := 0; i < len(ranks)/2; i++ {
-		j := len(ranks) - i - 1
-		ranks[i], ranks[j] = ranks[j], ranks[i]
-	}
-	tokens[0] = ranks[0]
-	for i := 1; i < len(ranks); i++ {
-		tokens[0] += ranks[i]
-	}
-	// add every piece to the board
-	for i := uint8(0); i < 64; i++ {
-		switch tokens[0][i] {
-		case 'p':
-			b.black.pawns |= 1 << i
-		case 'n':
-			b.black.knights |= 1 << i
-		case 'b':
-			b.black.bishops |= 1 << i
-		case 'r':
-			b.black.rooks |= 1 << i
-		case 'q':
-			b.black.queens |= 1 << i
-		case 'k':
-			b.black.kings |= 1 << i
-		case 'P':
-			b.white.pawns |= 1 << i
-		case 'N':
-			b.white.knights |= 1 << i
-		case 'B':
-			b.white.bishops |= 1 << i
-		case 'R':
-			b.white.rooks |= 1 << i
-		case 'Q':
-			b.white.queens |= 1 << i
-		case 'K':
-			b.white.kings |= 1 << i
-		}
-	}
-	b.white.all = b.white.pawns | b.white.knights | b.white.bishops | b.white.rooks | b.white.queens | b.white.kings
-	b.black.all = b.black.pawns | b.black.knights | b.black.bishops | b.black.rooks | b.black.queens | b.black.kings
-
-	b.wtomove = tokens[1] == "w" || tokens[1] == "W"
-	if strings.Contains(tokens[2], "K") {
-		b.FlipWhiteKingsideCastle()
-	}
-	if strings.Contains(tokens[2], "Q") {
-		b.FlipWhiteQueensideCastle()
-	}
-	if strings.Contains(tokens[2], "k") {
-		b.FlipBlackKingsideCastle()
-	}
-	if strings.Contains(tokens[2], "q") {
-		b.FlipBlackQueensideCastle()
-	}
-	if tokens[3] != "-" {
-		b.enpassant = AlgebraicToIndex(tokens[3])
-	}
-	return b
 }
 
 // Castle rights helpers. Data stored inside, from LSB:
@@ -129,10 +55,6 @@ func (b *Board) FlipBlackQueensideCastle() {
 }
 func (b *Board) FlipBlackKingsideCastle() {
 	b.castlerights = b.castlerights ^ (1 << 3)
-}
-
-func AlgebraicToIndex(alg string) uint8 {
-	return (strings.ToLower(alg)[0] - 'a') + ((alg[1] - '1') * 8)
 }
 
 type Bitboards struct {
@@ -192,36 +114,3 @@ const (
 	queen   = iota
 	king    = iota
 )
-
-// Masks for attacks
-// In order: knight on A1, B1, C1, ... F8, G8, H8
-var knightMasks = [64]uint64{0x20400, 0x50800, 0xa1100, 0x142200,
-	0x284400, 0x508800, 0xa01000, 0x402000, 0x2040004, 0x5080008, 0xa110011,
-	0x14220022, 0x28440044, 0x50880088, 0xa0100010, 0x40200020, 0x204000402,
-	0x508000805, 0xa1100110a, 0x1422002214, 0x2844004428, 0x5088008850,
-	0xa0100010a0, 0x4020002040, 0x20400040200, 0x50800080500, 0xa1100110a00,
-	0x142200221400, 0x284400442800, 0x508800885000, 0xa0100010a000,
-	0x402000204000, 0x2040004020000, 0x5080008050000, 0xa1100110a0000,
-	0x14220022140000, 0x28440044280000, 0x50880088500000, 0xa0100010a00000,
-	0x40200020400000, 0x204000402000000, 0x508000805000000, 0xa1100110a000000,
-	0x1422002214000000, 0x2844004428000000, 0x5088008850000000,
-	0xa0100010a0000000, 0x4020002040000000, 0x400040200000000,
-	0x800080500000000, 0x1100110a00000000, 0x2200221400000000,
-	0x4400442800000000, 0x8800885000000000, 0x100010a000000000,
-	0x2000204000000000, 0x4020000000000, 0x8050000000000, 0x110a0000000000,
-	0x22140000000000, 0x44280000000000, 0x88500000000000, 0x10a00000000000,
-	0x20400000000000}
-var kingMasks = [64]uint64{0x302, 0x705, 0xe0a, 0x1c14, 0x3828, 0x7050, 0xe0a0,
-	0xc040, 0x30203, 0x70507, 0xe0a0e, 0x1c141c, 0x382838, 0x705070, 0xe0a0e0,
-	0xc040c0, 0x3020300, 0x7050700, 0xe0a0e00, 0x1c141c00, 0x38283800,
-	0x70507000, 0xe0a0e000, 0xc040c000, 0x302030000, 0x705070000, 0xe0a0e0000,
-	0x1c141c0000, 0x3828380000, 0x7050700000, 0xe0a0e00000, 0xc040c00000,
-	0x30203000000, 0x70507000000, 0xe0a0e000000, 0x1c141c000000, 0x382838000000,
-	0x705070000000, 0xe0a0e0000000, 0xc040c0000000, 0x3020300000000,
-	0x7050700000000, 0xe0a0e00000000, 0x1c141c00000000, 0x38283800000000,
-	0x70507000000000, 0xe0a0e000000000, 0xc040c000000000, 0x302030000000000,
-	0x705070000000000, 0xe0a0e0000000000, 0x1c141c0000000000,
-	0x3828380000000000, 0x7050700000000000, 0xe0a0e00000000000,
-	0xc040c00000000000, 0x203000000000000, 0x507000000000000, 0xa0e000000000000,
-	0x141c000000000000, 0x2838000000000000, 0x5070000000000000,
-	0xa0e0000000000000, 0x40c0000000000000}

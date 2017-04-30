@@ -1,4 +1,4 @@
-package main
+package movegen
 
 import (
 	"fmt"
@@ -104,7 +104,6 @@ type Square uint8
 
 // Piece types; valid in range 0-6
 type Piece uint8
-
 const (
 	nothing = iota
 	pawn    = iota

@@ -1,4 +1,4 @@
-package main
+package movegen
 
 import (
 	"fmt"
@@ -17,11 +17,11 @@ func rookOccupancyMasks() [64]uint64 {
 	masks := [64]uint64{}
 	for i := uint64(0); i < 64; i++ { // for a rook at index i
 		// files: compute an index to activate
-		for j := uint64((i % 8) + 8); j <= 55; j += 8 { 
+		for j := uint64((i % 8) + 8); j <= 55; j += 8 {
 			masks[i] |= 1 << j
 		}
 		// ranks: compute an index to activate
-		for k := uint64((i / 8) * 8 + 1); k < ((i / 8) * 8 + 7); k ++ { 
+		for k := uint64((i/8)*8 + 1); k < ((i/8)*8 + 7); k++ {
 			masks[i] |= 1 << k
 		}
 		masks[i] &= (^(uint64(1) << i)) // unset the origin bit
@@ -45,23 +45,23 @@ func bishopOccupancyMasks() [64]uint64 {
 		SErayLength := Min(distanceFromHFile, distanceFromRank1) - 1
 		SWrayLength := Min(distanceFromAFile, distanceFromRank1) - 1
 		maxVal_uint64 := uint64(18446744073709551615)
-		if (NErayLength == maxVal_uint64) { // A -1 might have overflowed
+		if NErayLength == maxVal_uint64 { // A -1 might have overflowed
 			NErayLength = 0
 		}
-		if (NWrayLength == maxVal_uint64) {
+		if NWrayLength == maxVal_uint64 {
 			NWrayLength = 0
 		}
-		if (SErayLength == maxVal_uint64) {
+		if SErayLength == maxVal_uint64 {
 			SErayLength = 0
 		}
-		if (SWrayLength == maxVal_uint64) {
+		if SWrayLength == maxVal_uint64 {
 			SWrayLength = 0
 		}
 		for j := uint64(1); j <= NErayLength; j++ {
-			masks[i] |= 1 << (j * 9 + i)
+			masks[i] |= 1 << (j*9 + i)
 		}
 		for j := uint64(1); j <= NWrayLength; j++ {
-			masks[i] |= 1 << (j * 7 + i)
+			masks[i] |= 1 << (j*7 + i)
 		}
 		for j := uint64(1); j <= SErayLength; j++ {
 			masks[i] |= 1 << (i - (j * 7))

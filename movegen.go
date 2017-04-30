@@ -1,4 +1,4 @@
-package main
+package movegen
 
 import (
 	"math/bits"
@@ -165,10 +165,10 @@ func (b *Board) kingMoves(moveList *[]Move) {
 	genMovesFromTargets(moveList, Square(ourKingLocation), targets)
 }
 
-func (b *Board) rookMoves(moveList *[]Move) {
+/*func (b *Board) rookMoves(moveList *[]Move) {
 	var ourRooks uint64
 	var friendlyPieces uint64
-	if (b.wtomove) {
+	if b.wtomove {
 		ourRooks = b.white.rooks
 		friendlyPieces = b.white.all
 	} else {
@@ -189,7 +189,7 @@ func (b *Board) rookMoves(moveList *[]Move) {
 func (b *Board) bishopMoves(moveList *[]Move) {
 	var ourBishops uint64
 	var friendlyPieces uint64
-	if (b.wtomove) {
+	if b.wtomove {
 		ourBishops = b.white.bishops
 		friendlyPieces = b.white.all
 	} else {
@@ -205,7 +205,7 @@ func (b *Board) bishopMoves(moveList *[]Move) {
 		targets := magicMovesBishop[currBishop][dbindex] & (^friendlyPieces)
 		genMovesFromTargets(moveList, Square(currBishop), targets)
 	}
-}
+}*/
 
 // Converts a targets bitboard into moves, and adds them to the list
 func genMovesFromTargets(moveList *[]Move, origin Square, targets uint64) {
@@ -216,5 +216,4 @@ func genMovesFromTargets(moveList *[]Move, origin Square, targets uint64) {
 		move.Setfrom(origin).Setto(Square(target))
 		*moveList = append(*moveList, move)
 	}
-} 
-
+}

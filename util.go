@@ -1,6 +1,7 @@
-package main
+package movegen
 
 import (
+	//"math/bits"
 	"strconv"
 	"strings"
 )
@@ -9,9 +10,33 @@ func AlgebraicToIndex(alg string) uint8 {
 	return (strings.ToLower(alg)[0] - 'a') + ((alg[1] - '1') * 8)
 }
 
-func generateRookMagicTable() {
-	
+/*func generateRookMagicTable() {
+	// For a rook at every board position
+	for i := 0; i < 64; i++ {
+		blockerMask := magicRookBlockerMasks[i]
+		generateRookBlockerPermutations(Square(i), blockerMask, 0)
+	}
 }
+
+// Recursively generate all permutations of active and inactive bits in the
+// blocker mask. Origin is the piece's starting square. BlockerMaskProgress is
+// the original blocker bitboard, from which we eliminate bits.
+// CurrPerm is the bitboard permutation we are accumulating.
+func generateRookBlockerPermutations(origin Square, blockerMaskProgress uint64, currPerm uint64) {
+	if blockerMaskProgress == 0 {
+		// the currPerm represents one possible occupancy pattern on the rook blocker bitboard
+		dbindex := (currPerm * magicNumberRook[origin]) >> magicRookShifts[origin]
+
+		magicMovesRook[origin][dbindex] = moves
+		return
+	}
+	nextBit := bits.TrailingZeros64(blockerMaskProgress)
+	blockerMaskProgress &= blockerMaskProgress - 1
+	without := currPerm
+	with := currPerm | (uint64(1) << uint8(nextBit))
+	generateRookBlockerPermutations(origin, blockerMaskProgress, without)
+	generateRookBlockerPermutations(origin, blockerMaskProgress, with)
+}*/
 
 // Parse a board from a FEN string.
 // TODO: This implementation is a bit sloppy, and doesn't handle bad inputs.

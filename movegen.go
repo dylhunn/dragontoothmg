@@ -122,13 +122,7 @@ func (b *Board) knightMoves(moveList *[]Move) {
 		currentKnight := bits.TrailingZeros64(ourKnights)
 		ourKnights &= ourKnights - 1
 		targets := knightMasks[currentKnight] & noFriendlyPieces
-		for targets != 0 {
-			target := bits.TrailingZeros64(targets)
-			targets &= targets - 1
-			var move Move
-			move.Setfrom(Square(currentKnight)).Setto(Square(target))
-			*moveList = append(*moveList, move)
-		}
+		genMovesFromTargets(moveList, Square(currentKnight), targets)
 	}
 }
 
@@ -168,11 +162,59 @@ func (b *Board) kingMoves(moveList *[]Move) {
 
 	// This assumes only one king is present
 	targets := kingMasks[ourKingLocation] & noFriendlyPieces
+	genMovesFromTargets(moveList, Square(ourKingLocation), targets)
+}
+
+func (b *Board) rookMoves(moveList *[]Move) {
+	var ourRooks uint64
+	var friendlyPieces uint64
+	if (b.wtomove) {
+		ourRooks = b.white.rooks
+		friendlyPieces = b.white.all
+	} else {
+		ourRooks = b.black.rooks
+		friendlyPieces = b.black.all
+	}
+	allPieces := b.white.all & b.black.all
+	for ourRooks != 0 {
+		currRook := bits.TrailingZeros64(ourRooks)
+		ourRooks &= ourRooks - 1
+		blockers := magicRookBlockerMasks[currRook] & allPieces
+		dbindex := (blockers * magicNumberRook[currRook]) >> magicRookShifts[currRook]
+		targets := magicMovesRook[currRook][dbindex] & (^friendlyPieces)
+		genMovesFromTargets(moveList, Square(currRook), targets)
+	}
+}
+
+func (b *Board) bishopMoves(moveList *[]Move) {
+	var ourBishops uint64
+	var friendlyPieces uint64
+	if (b.wtomove) {
+		ourBishops = b.white.bishops
+		friendlyPieces = b.white.all
+	} else {
+		ourBishops = b.black.bishops
+		friendlyPieces = b.black.all
+	}
+	allPieces := b.white.all & b.black.all
+	for ourBishops != 0 {
+		currBishop := bits.TrailingZeros64(ourBishops)
+		ourBishops &= ourBishops - 1
+		blockers := magicBishopBlockerMasks[currBishop] & allPieces
+		dbindex := (blockers * magicNumberBishop[currBishop]) >> magicBishopShifts[currBishop]
+		targets := magicMovesBishop[currBishop][dbindex] & (^friendlyPieces)
+		genMovesFromTargets(moveList, Square(currBishop), targets)
+	}
+}
+
+// Converts a targets bitboard into moves, and adds them to the list
+func genMovesFromTargets(moveList *[]Move, origin Square, targets uint64) {
 	for targets != 0 {
 		target := bits.TrailingZeros64(targets)
 		targets &= targets - 1
 		var move Move
-		move.Setfrom(Square(ourKingLocation)).Setto(Square(target))
+		move.Setfrom(origin).Setto(Square(target))
 		*moveList = append(*moveList, move)
 	}
-}
+} 
+

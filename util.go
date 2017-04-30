@@ -9,6 +9,10 @@ func AlgebraicToIndex(alg string) uint8 {
 	return (strings.ToLower(alg)[0] - 'a') + ((alg[1] - '1') * 8)
 }
 
+func generateRookMagicTable() {
+	
+}
+
 // Parse a board from a FEN string.
 // TODO: This implementation is a bit sloppy, and doesn't handle bad inputs.
 func ParseFen(fen string) Board {

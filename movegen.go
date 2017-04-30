@@ -2,7 +2,6 @@ package main
 
 import (
 	"math/bits"
-	"fmt"
 )
 
 func (b *Board) pawnPushes(moveList *[]Move) {
@@ -160,14 +159,11 @@ func (b *Board) kingMoves(moveList *[]Move) {
 		var move Move
 		move.Setfrom(Square(ourKingLocation)).Setto(Square(ourKingLocation + 2))
 		*moveList = append(*moveList, move)
-				fmt.Println(&move)
-
 	}
 	if canCastleQueenside {
 		var move Move
 		move.Setfrom(Square(ourKingLocation)).Setto(Square(ourKingLocation - 2))
 		*moveList = append(*moveList, move)
-		fmt.Println(&move)
 	}
 
 	// This assumes only one king is present
@@ -178,7 +174,5 @@ func (b *Board) kingMoves(moveList *[]Move) {
 		var move Move
 		move.Setfrom(Square(ourKingLocation)).Setto(Square(target))
 		*moveList = append(*moveList, move)
-				fmt.Println(&move)
-
 	}
 }

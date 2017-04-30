@@ -174,4 +174,3 @@ func TestKingPositions(t *testing.T) {
 		t.Error("King moves: wrong length. Expected 4, got", len(moves2))
 	}
 }
-

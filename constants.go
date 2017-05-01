@@ -7,17 +7,28 @@ import (
 // Initialize the magic lookups tables
 func init() {
 	magicMovesRook = make([][]uint64, 64, 64)
+	magicMovesBishop = make([][]uint64, 64, 64)
 	for i := 0; i < 64; i++ {
 		magicMovesRook[i] = make([]uint64, magicDbSizeRook[i], magicDbSizeRook[i])
+		magicMovesBishop[i] = make([]uint64, magicDbSizeBishop[i], magicDbSizeBishop[i])
 	}
 	generateRookMagicTable()
+	generateBishopMagicTable()
 }
 
 func generateRookMagicTable() {
 	// For a rook at every board position
 	for i := 0; i < 64; i++ {
 		blockerMask := magicRookBlockerMasks[i]
-		generateRookBlockerPermutations(Square(i), blockerMask, 0)
+		generateBlockerPermutations(Square(i), blockerMask, 0, true)
+	}
+}
+
+func generateBishopMagicTable() {
+	// For a bishop at every board position
+	for i := 0; i < 64; i++ {
+		blockerMask := magicBishopBlockerMasks[i]
+		generateBlockerPermutations(Square(i), blockerMask, 0, false)
 	}
 }
 
@@ -25,20 +36,24 @@ func generateRookMagicTable() {
 // blocker mask. Origin is the piece's starting square. BlockerMaskProgress is
 // the original blocker bitboard, from which we eliminate bits.
 // CurrPerm is the bitboard permutation we are accumulating.
-func generateRookBlockerPermutations(origin Square, blockerMaskProgress uint64, currPerm uint64) {
+func generateBlockerPermutations(origin Square, blockerMaskProgress uint64, currPerm uint64, rook bool) {
 	if blockerMaskProgress == 0 {
-		// currPerm represents one possible occupancy pattern on the rook blocker bitboard
-		dbindex := (currPerm * magicNumberRook[origin]) >> magicRookShifts[origin]
-
-		magicMovesRook[origin][dbindex] = rookMovesFromBlockers(origin, currPerm)
+		// currPerm represents one possible occupancy pattern on the blocker bitboard
+		if (rook) {
+			dbindex := (currPerm * magicNumberRook[origin]) >> magicRookShifts[origin]
+			magicMovesRook[origin][dbindex] = rookMovesFromBlockers(origin, currPerm)
+		} else {
+			dbindex := (currPerm * magicNumberBishop[origin]) >> magicBishopShifts[origin]
+			magicMovesBishop[origin][dbindex] = bishopMovesFromBlockers(origin, currPerm)
+		}
 		return
 	}
 	nextBit := bits.TrailingZeros64(blockerMaskProgress)
 	blockerMaskProgress &= blockerMaskProgress - 1
 	without := currPerm
 	with := currPerm | (uint64(1) << uint8(nextBit))
-	generateRookBlockerPermutations(origin, blockerMaskProgress, without)
-	generateRookBlockerPermutations(origin, blockerMaskProgress, with)
+	generateBlockerPermutations(origin, blockerMaskProgress, without, rook)
+	generateBlockerPermutations(origin, blockerMaskProgress, with, rook)
 }
 
 func rookMovesFromBlockers(origin Square, blockers uint64) uint64 {
@@ -95,6 +110,52 @@ func rookMovesFromBlockers(origin Square, blockers uint64) uint64 {
 	return moves
 
 }
+
+func bishopMovesFromBlockers(origin Square, blockers uint64) uint64 {
+	var moves uint64
+	nextSquareNE := origin + 9
+	for nextSquareNE % 8 > origin % 8 {
+		nextSquareBitboard := uint64(1) << uint8(nextSquareNE)
+		moves |= nextSquareBitboard
+		if blockers & nextSquareBitboard != 0 {
+			break
+		}
+		nextSquareNE += 9
+	}
+
+	nextSquareNW := origin + 7
+	for nextSquareNW % 8 < origin % 8 {
+		nextSquareBitboard := uint64(1) << uint8(nextSquareNW)
+		moves |= nextSquareBitboard
+		if blockers & nextSquareBitboard != 0 {
+			break
+		}
+		nextSquareNW += 7
+	}
+
+	nextSquareSE := origin - 7
+	for nextSquareSE % 8 > origin % 8 {
+		nextSquareBitboard := uint64(1) << uint8(nextSquareSE)
+		moves |= nextSquareBitboard
+		if blockers & nextSquareBitboard != 0 {
+			break
+		}
+		nextSquareSE -= 7
+	}
+
+	nextSquareSW := origin - 9
+	for nextSquareSW % 8 < origin % 8 {
+		nextSquareBitboard := uint64(1) << uint8(nextSquareSW)
+		moves |= nextSquareBitboard
+		if blockers & nextSquareBitboard != 0 {
+			break
+		}
+		nextSquareSW -= 9
+	}
+
+	return moves
+}
+
 // Masks for attacks
 // In order: knight on A1, B1, C1, ... F8, G8, H8
 var knightMasks = [64]uint64{
@@ -242,5 +303,13 @@ var magicDbSizeRook = [64]uint64{
 	2048, 1024, 1024, 1024, 1024, 1024, 1024, 2048,
 	2048, 1024, 1024, 2048, 2048, 2048, 2048, 2048}
 
+var magicDbSizeBishop = [64]uint64{
+	64, 32, 32, 32, 32, 32, 32, 64, 32, 32, 32, 32, 32, 32, 32, 32,
+	32, 32, 128, 128, 128, 128, 32, 32, 32, 32, 128, 512, 512, 128, 32, 32,
+	32, 32, 128, 512, 512, 128, 32, 32, 32, 32, 128, 128, 128, 128, 32, 32,
+	32, 32, 32, 32, 32, 32, 32, 32, 64, 32, 32, 32, 32, 32, 32, 64}
+
+
 // The actual magic moves database, populated by init
 var magicMovesRook [][]uint64
+var magicMovesBishop [][]uint64

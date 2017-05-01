@@ -195,3 +195,20 @@ func TestRookPositions(t *testing.T) {
 		}
 	}
 }
+
+func TestBishopPositions(t *testing.T) {
+	positions := map[string]int{
+		"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq -":  0,
+		"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR b KQkq -":  0,
+		"rnbqkb1r/pp2pppp/8/4P3/5bN1/8/PPP2PPP/RNBQKBNR w KQkq -": 8,
+		"rnbqkb1r/pp2pppp/8/4P3/5bN1/8/PPP2PPP/RNBQKBNR b KQkq -": 12,
+	}
+	for k, v := range positions {
+		moves := make([]Move, 0, 45)
+		b := ParseFen(k)
+		b.bishopMoves(&moves)
+		if len(moves) != v {
+			t.Error("Bishop moves: wrong length. Expected", v, "but got", len(moves))
+		}
+	}
+}

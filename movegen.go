@@ -5,8 +5,18 @@ import (
 )
 
 // The main API entrypoint. Generates all pseudo-legal moves for a given board.
-func (b *Board) GenerateMoves() []Move {
-	return make([]Move, 0)
+// "Pseudo-legal moves" means that checking is ignored; generated moves might
+// move into check, fail to break check, or castle through check.
+func (b *Board) GeneratePseudolegalMoves() []Move {
+	moves := make([]Move, 0, 45)
+	b.pawnPushes(&moves)
+	b.pawnCaptures(&moves)
+	b.knightMoves(&moves)
+	b.kingMoves(&moves)
+	b.rookMoves(&moves)
+	b.bishopMoves(&moves)
+	//b.queenMoves(&moves)
+	return moves
 }
 
 func (b *Board) pawnPushes(moveList *[]Move) {
@@ -191,7 +201,7 @@ func (b *Board) rookMoves(moveList *[]Move) {
 	}
 }
 
-/*
+
 func (b *Board) bishopMoves(moveList *[]Move) {
 	var ourBishops uint64
 	var friendlyPieces uint64
@@ -211,9 +221,9 @@ func (b *Board) bishopMoves(moveList *[]Move) {
 		targets := magicMovesBishop[currBishop][dbindex] & (^friendlyPieces)
 		genMovesFromTargets(moveList, Square(currBishop), targets)
 	}
-}*/
+}
 
-// Converts a targets bitboard into moves, and adds them to the list
+// Helper: converts a targets bitboard into moves, and adds them to the list
 func genMovesFromTargets(moveList *[]Move, origin Square, targets uint64) {
 	for targets != 0 {
 		target := bits.TrailingZeros64(targets)

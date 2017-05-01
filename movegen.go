@@ -1,9 +1,10 @@
+// dragontoothmg is a fast chess move generator library based on magic bitboards.
+package dragontoothmg
+
 // The main Dragontooth move generator file.
 // Functions are in this file if (and only if) they are performance-critical
 // move generator components, called while actually generating moves in-game.
 // (The exception is a few one-line helpers for Move and Board in types.go)
-
-package dragontoothmg
 
 import (
 	"math/bits"

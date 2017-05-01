@@ -1,4 +1,6 @@
 [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](http://www.gnu.org/licenses/gpl-3.0)
+![Build Status](http://img.shields.io/travis/dylhunn/dragontooth-movegen.svg)
+
 
 Dragontooth Movegen | Dylan D. Hunn
 ==================================

@@ -4,6 +4,11 @@ import (
 	"math/bits"
 )
 
+// The main API entrypoint. Generates all pseudo-legal moves for a given board.
+func (b *Board) GenerateMoves() []Move {
+	return make([]Move, 0)
+}
+
 func (b *Board) pawnPushes(moveList *[]Move) {
 	targets, doubleTargets := b.pawnPushBitboards()
 	oneRankBack := 8
@@ -23,7 +28,7 @@ func (b *Board) pawnPushes(moveList *[]Move) {
 		var move Move
 		move.Setfrom(Square(target + oneRankBack)).Setto(Square(target))
 		if canPromote {
-			for i := Piece(knight); i <= queen; i++ {
+			for i := Piece(Knight); i <= Queen; i++ {
 				move.Setpromote(i)
 				*moveList = append(*moveList, move)
 			}
@@ -76,7 +81,7 @@ func (b *Board) pawnCaptures(moveList *[]Move) {
 				canPromote = target <= 7
 			}
 			if canPromote {
-				for i := Piece(knight); i <= queen; i++ {
+				for i := Piece(Knight); i <= Queen; i++ {
 					move.Setpromote(i)
 					*moveList = append(*moveList, move)
 				}
@@ -139,15 +144,15 @@ func (b *Board) kingMoves(moveList *[]Move) {
 		// To castle, we must have rights and a clear path
 		kingsideClear := allPieces&(1<<5)&(1<<6) == 0
 		queensideClear := allPieces&(1<<3)&(1<<2)&(1<<1) == 0
-		canCastleQueenside = b.WhiteCanCastleQueenside() && queensideClear
-		canCastleKingside = b.WhiteCanCastleKingside() && kingsideClear
+		canCastleQueenside = b.whiteCanCastleQueenside() && queensideClear
+		canCastleKingside = b.whiteCanCastleKingside() && kingsideClear
 	} else {
 		ourKingLocation = uint8(bits.TrailingZeros64(b.black.kings))
 		noFriendlyPieces = ^(b.black.all)
 		kingsideClear := allPieces&(1<<61)&(1<<62) == 0
 		queensideClear := allPieces&(1<<57)&(1<<58)&(1<<59) == 0
-		canCastleQueenside = b.BlackCanCastleQueenside() && queensideClear
-		canCastleKingside = b.BlackCanCastleKingside() && kingsideClear
+		canCastleQueenside = b.blackCanCastleQueenside() && queensideClear
+		canCastleKingside = b.blackCanCastleKingside() && kingsideClear
 	}
 	if canCastleKingside {
 		var move Move

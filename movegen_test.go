@@ -9,8 +9,8 @@ func TestWhitePawnPush(t *testing.T) {
 	var whitePawnsBefore uint64 = 0xFF00 // white on second rank
 	var whitePawnsAfter uint64 = 0xFCFD0000
 	var blackPawns uint64 = 0x1020000 // black on 24 and 17
-	whitepieces := Bitboards{pawns: whitePawnsBefore, all: whitePawnsBefore}
-	blackpieces := Bitboards{pawns: blackPawns, all: blackPawns}
+	whitepieces := bitboards{pawns: whitePawnsBefore, all: whitePawnsBefore}
+	blackpieces := bitboards{pawns: blackPawns, all: blackPawns}
 	testboard := Board{white: whitepieces, black: blackpieces, wtomove: true}
 	moves := make([]Move, 0, 45)
 	testboard.pawnPushes(&moves)
@@ -44,8 +44,8 @@ func TestPawnPosition0(t *testing.T) {
 	var blackPawns uint64 = 0x406000000      // black on 25, 26, 34
 	var blackKnight uint64 = 1 << 61         // black on 61 (for capture promotion)
 	// en passant target is 42
-	whitepieces := Bitboards{pawns: whitePawns, all: whitePawns}
-	blackpieces := Bitboards{pawns: blackPawns, knights: blackKnight, all: blackPawns | blackKnight}
+	whitepieces := bitboards{pawns: whitePawns, all: whitePawns}
+	blackpieces := bitboards{pawns: blackPawns, knights: blackKnight, all: blackPawns | blackKnight}
 	testboard := Board{white: whitepieces, black: blackpieces, wtomove: true, enpassant: 42}
 
 	moves := make([]Move, 0, 45)
@@ -91,8 +91,8 @@ func TestPawnPosition1(t *testing.T) {
 	var blackPawns uint64 = 0x40001064000100
 	var whiteKnight uint64 = 1 << 1 // white on 1 (for capture promotion)
 	// en passant target is 19
-	whitepieces := Bitboards{pawns: whitePawns, knights: whiteKnight, all: whitePawns | whiteKnight}
-	blackpieces := Bitboards{pawns: blackPawns, all: blackPawns}
+	whitepieces := bitboards{pawns: whitePawns, knights: whiteKnight, all: whitePawns | whiteKnight}
+	blackpieces := bitboards{pawns: blackPawns, all: blackPawns}
 	testboard := Board{white: whitepieces, black: blackpieces, wtomove: false, enpassant: 19}
 
 	moves := make([]Move, 0, 45)
@@ -142,8 +142,8 @@ func TestKnightPosition0(t *testing.T) {
 	// 0000000000000000000000100010000000000001000010000100000000000000
 	var blackKnights uint64 = 0x22001084000
 
-	whitepieces := Bitboards{pawns: whitePawns, knights: whiteKnights, all: whitePawns | whiteKnights}
-	blackpieces := Bitboards{pawns: blackPawns, knights: blackKnights, all: blackPawns | blackKnights}
+	whitepieces := bitboards{pawns: whitePawns, knights: whiteKnights, all: whitePawns | whiteKnights}
+	blackpieces := bitboards{pawns: blackPawns, knights: blackKnights, all: blackPawns | blackKnights}
 	testboard := Board{white: whitepieces, black: blackpieces, wtomove: true}
 
 	moves := make([]Move, 0, 45)

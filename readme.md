@@ -8,3 +8,8 @@ Dragontooth Movegen is a fast, magic-bitboard chess move generator written entir
 It provides a simple API for generating pseudo-legal moves.
 
 It uses the new Go 1.9 bits library.
+
+Project Status
+==============
+
+This project is not completed yet.

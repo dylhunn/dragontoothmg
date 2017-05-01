@@ -17,12 +17,13 @@ import (
 // MSB---------------------------------------------------LSB
 // H8 G8 F8 E8 D8 C8 B8 A8 H7 ... A2 H1 G1 F1 E1 D1 C1 B1 A1
 
+// The board type, which uses little-endian rank-file mapping.
 type Board struct {
 	wtomove      bool
 	enpassant    uint8 // square id (16-23 or 40-47) where en passant capture is possible
 	castlerights uint8
-	white        Bitboards
-	black        Bitboards
+	white        bitboards
+	black        bitboards
 }
 
 // Castle rights helpers. Data stored inside, from LSB:
@@ -32,32 +33,34 @@ type Board struct {
 // 1 bit: Black castle kingside
 // This just indicates whether castling rights have been lost, not whether
 // castling is actually possible.
-func (b *Board) WhiteCanCastleQueenside() bool {
+
+
+func (b *Board) whiteCanCastleQueenside() bool {
 	return b.castlerights&1 == 1
 }
-func (b *Board) WhiteCanCastleKingside() bool {
+func (b *Board) whiteCanCastleKingside() bool {
 	return (b.castlerights&0x2)>>1 == 1
 }
-func (b *Board) BlackCanCastleQueenside() bool {
+func (b *Board) blackCanCastleQueenside() bool {
 	return (b.castlerights&0x4)>>2 == 1
 }
-func (b *Board) BlackCanCastleKingside() bool {
+func (b *Board) blackCanCastleKingside() bool {
 	return (b.castlerights&0x8)>>3 == 1
 }
-func (b *Board) FlipWhiteQueensideCastle() {
+func (b *Board) flipWhiteQueensideCastle() {
 	b.castlerights = b.castlerights ^ (1)
 }
-func (b *Board) FlipWhiteKingsideCastle() {
+func (b *Board) flipWhiteKingsideCastle() {
 	b.castlerights = b.castlerights ^ (1 << 1)
 }
-func (b *Board) FlipBlackQueensideCastle() {
+func (b *Board) flipBlackQueensideCastle() {
 	b.castlerights = b.castlerights ^ (1 << 2)
 }
-func (b *Board) FlipBlackKingsideCastle() {
+func (b *Board) flipBlackKingsideCastle() {
 	b.castlerights = b.castlerights ^ (1 << 3)
 }
 
-type Bitboards struct {
+type bitboards struct {
 	pawns   uint64
 	bishops uint64
 	knights uint64
@@ -67,11 +70,12 @@ type Bitboards struct {
 	all     uint64
 }
 
-// Move bitwise structure
 // Data stored inside, from LSB
 // 6 bits: destination square
 // 6 bits: source square
 // 3 bits: promotion
+
+// Move bitwise structure; internal implementation is private.
 type Move uint32
 
 func (m *Move) To() Square {
@@ -80,6 +84,7 @@ func (m *Move) To() Square {
 func (m *Move) From() Square {
 	return Square((*m & 0xFC0) >> 6)
 }
+// Whether the move involves promoting a pawn.
 func (m *Move) Promote() Piece {
 	return Piece((*m & 0x7000) >> 12)
 }
@@ -99,17 +104,17 @@ func (m *Move) String() string {
 	return fmt.Sprintf("[from: %v, to: %v, promote: %v]", m.From(), m.To(), m.Promote())
 }
 
-// Square index values from 0-63
+// Square index values from 0-63.
 type Square uint8
 
-// Piece types; valid in range 0-6
+// Piece types; valid in range 0-6, as indicated by the constants for each piece.
 type Piece uint8
 const (
-	nothing = iota
-	pawn    = iota
-	knight  = iota // list before bishop for promotion loops
-	bishop  = iota
-	rook    = iota
-	queen   = iota
-	king    = iota
+	Nothing = iota
+	Pawn    = iota
+	Knight  = iota // list before bishop for promotion loops
+	Bishop  = iota
+	Rook    = iota
+	Queen   = iota
+	King    = iota
 )

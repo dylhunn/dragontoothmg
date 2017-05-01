@@ -6,6 +6,8 @@ import (
 	"strings"
 )
 
+// Accepts an algebraic notation chess square, and converts it to a square ID
+// as used by Dragontooth (in both the board and move types).
 func AlgebraicToIndex(alg string) uint8 {
 	return (strings.ToLower(alg)[0] - 'a') + ((alg[1] - '1') * 8)
 }
@@ -39,8 +41,8 @@ func generateRookBlockerPermutations(origin Square, blockerMaskProgress uint64, 
 }*/
 
 // Parse a board from a FEN string.
-// TODO: This implementation is a bit sloppy, and doesn't handle bad inputs.
 func ParseFen(fen string) Board {
+	// BUG(dylhunn): This FEN parsing implementation doesn't handle malformed inputs.
 	tokens := strings.Fields(fen)
 	var b Board
 	// replace digits with the appropriate number of dashes
@@ -95,16 +97,16 @@ func ParseFen(fen string) Board {
 
 	b.wtomove = tokens[1] == "w" || tokens[1] == "W"
 	if strings.Contains(tokens[2], "K") {
-		b.FlipWhiteKingsideCastle()
+		b.flipWhiteKingsideCastle()
 	}
 	if strings.Contains(tokens[2], "Q") {
-		b.FlipWhiteQueensideCastle()
+		b.flipWhiteQueensideCastle()
 	}
 	if strings.Contains(tokens[2], "k") {
-		b.FlipBlackKingsideCastle()
+		b.flipBlackKingsideCastle()
 	}
 	if strings.Contains(tokens[2], "q") {
-		b.FlipBlackQueensideCastle()
+		b.flipBlackQueensideCastle()
 	}
 	if tokens[3] != "-" {
 		b.enpassant = AlgebraicToIndex(tokens[3])

@@ -40,10 +40,10 @@ func bishopOccupancyMasks() [64]uint64 {
 		distanceFromRank1 := i / 8 // distance above the first rank
 		distanceFromHFile := 7 - distanceFromAFile
 		distanceFromRank8 := 7 - distanceFromRank1
-		NErayLength := Min(distanceFromHFile, distanceFromRank8) - 1
-		NWrayLength := Min(distanceFromAFile, distanceFromRank8) - 1
-		SErayLength := Min(distanceFromHFile, distanceFromRank1) - 1
-		SWrayLength := Min(distanceFromAFile, distanceFromRank1) - 1
+		NErayLength := min(distanceFromHFile, distanceFromRank8) - 1
+		NWrayLength := min(distanceFromAFile, distanceFromRank8) - 1
+		SErayLength := min(distanceFromHFile, distanceFromRank1) - 1
+		SWrayLength := min(distanceFromAFile, distanceFromRank1) - 1
 		maxVal_uint64 := uint64(18446744073709551615)
 		if NErayLength == maxVal_uint64 { // A -1 might have overflowed
 			NErayLength = 0
@@ -73,7 +73,7 @@ func bishopOccupancyMasks() [64]uint64 {
 	return masks
 }
 
-func Min(i uint64, j uint64) uint64 {
+func min(i uint64, j uint64) uint64 {
 	if i < j {
 		return i
 	}

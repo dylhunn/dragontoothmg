@@ -1,5 +1,6 @@
 [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](http://www.gnu.org/licenses/gpl-3.0)
 ![Build Status](http://img.shields.io/travis/dylhunn/dragontooth-movegen.svg)
+[![Documentation](https://img.shields.io/badge/Documentation-GoDoc-green.svg)](https://godoc.org/github.com/dylhunn/dragontooth-movegen)
 
 
 Dragontooth Movegen | Dylan D. Hunn
@@ -28,11 +29,11 @@ This project requires Go 1.9. As of the time of writing, 1.9 is still a pre-rele
 
 To use this package in your own code, make sure your `GO_PATH` environment variable is correctly set, and install it using `go get`:
 
-    code example forthcoming
+    go get github.com/dylhunn/dragontooth-movegen
 
 Then, you can include it in your project:
 
-	import "github.com/dylhunn/movegen"
+	import "github.com/dylhunn/dragontooth-movegen"
 
 Alternatively, you can clone it yourself:
 
@@ -42,12 +43,12 @@ Alternatively, you can clone it yourself:
 Documentation and examples
 ==========================
 
-You will soon be able to find the documentation [here](#).
+You can find the documentation [here](https://godoc.org/github.com/dylhunn/dragontooth-movegen).
 
 Here is a simple example invocation:
 
     board := movegen.ParseFen("1Q2rk2/2p2p2/1n4b1/N7/2B1Pp1q/2B4P/1QPP4/4K2R b K e3 4 30")
     moveList := board.GeneratePseudolegalMoves()
     for _, curr := range moveList {
-    	fmt.Println("Moved to: %v", movegen.IndexToAlgebraic(curr.To()))
+    	fmt.Println("Moved to: %v", dragontoothmg.IndexToAlgebraic(curr.To()))
     }

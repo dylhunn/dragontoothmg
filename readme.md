@@ -5,16 +5,16 @@
 Dragontooth Movegen | Dylan D. Hunn
 ==================================
 
-Dragontooth Movegen is a fast, magic-bitboard chess move generator written entirely in Go. 
+Dragontooth Movegen is a fast, magic-bitboard chess move generator written entirely in Go. It provides a simple API for generating pseudo-legal moves.
 
-It provides a simple API for generating pseudo-legal moves.
+| **File**         | **Description**                                                                                                                                         |
+|--------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
+| movegen.go   | This is the "primary" source file. Functions are located here if, and only if, they are performance critical and executed to generate moves in-game. |
+| types.go     | This file contains the Board and Moves types, along with some supporting helper functions and types.                                                 |
+| constants.go | All constants for move generation are hard-coded here, along with functions to compute the magic bitboard lookup tables when the file loads.         |
+| util.go      | This file contains supporting library functions, for FEN reading and conversions.                                                                    |
 
-It uses the new Go 1.9 bits library.
-
-Project status
-==============
-
-**This project is not completed yet.** Please check back in a few weeks for a working version!
+**This project is not completed yet.** Please check back soon for a working version!
 
 Installing and building the library
 ===================================
@@ -42,7 +42,7 @@ You will soon be able to find the documentation [here](#).
 Here is a simple example invocation:
 
     board := movegen.ParseFen("1Q2rk2/2p2p2/1n4b1/N7/2B1Pp1q/2B4P/1QPP4/4K2R b K e3 4 30")
-    moveList := board.GenerateMoves()
+    moveList := board.GeneratePseudolegalMoves()
     for _, curr := range moveList {
     	fmt.Println("Moved to: %v", movegen.IndexToAlgebraic(curr.To()))
     }

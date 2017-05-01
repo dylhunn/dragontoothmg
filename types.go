@@ -1,4 +1,4 @@
-package movegen
+package dragontoothmg
 
 import (
 	"fmt"

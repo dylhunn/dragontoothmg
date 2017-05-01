@@ -1,4 +1,4 @@
-package movegen
+package dragontoothmg
 
 import (
 	"math/bits"
@@ -39,7 +39,7 @@ func generateBishopMagicTable() {
 func generateBlockerPermutations(origin Square, blockerMaskProgress uint64, currPerm uint64, rook bool) {
 	if blockerMaskProgress == 0 {
 		// currPerm represents one possible occupancy pattern on the blocker bitboard
-		if (rook) {
+		if rook {
 			dbindex := (currPerm * magicNumberRook[origin]) >> magicRookShifts[origin]
 			magicMovesRook[origin][dbindex] = rookMovesFromBlockers(origin, currPerm)
 		} else {
@@ -114,40 +114,40 @@ func rookMovesFromBlockers(origin Square, blockers uint64) uint64 {
 func bishopMovesFromBlockers(origin Square, blockers uint64) uint64 {
 	var moves uint64
 	nextSquareNE := origin + 9
-	for nextSquareNE % 8 > origin % 8 {
+	for nextSquareNE%8 > origin%8 {
 		nextSquareBitboard := uint64(1) << uint8(nextSquareNE)
 		moves |= nextSquareBitboard
-		if blockers & nextSquareBitboard != 0 {
+		if blockers&nextSquareBitboard != 0 {
 			break
 		}
 		nextSquareNE += 9
 	}
 
 	nextSquareNW := origin + 7
-	for nextSquareNW % 8 < origin % 8 {
+	for nextSquareNW%8 < origin%8 {
 		nextSquareBitboard := uint64(1) << uint8(nextSquareNW)
 		moves |= nextSquareBitboard
-		if blockers & nextSquareBitboard != 0 {
+		if blockers&nextSquareBitboard != 0 {
 			break
 		}
 		nextSquareNW += 7
 	}
 
 	nextSquareSE := origin - 7
-	for nextSquareSE % 8 > origin % 8 {
+	for nextSquareSE%8 > origin%8 {
 		nextSquareBitboard := uint64(1) << uint8(nextSquareSE)
 		moves |= nextSquareBitboard
-		if blockers & nextSquareBitboard != 0 {
+		if blockers&nextSquareBitboard != 0 {
 			break
 		}
 		nextSquareSE -= 7
 	}
 
 	nextSquareSW := origin - 9
-	for nextSquareSW % 8 < origin % 8 {
+	for nextSquareSW%8 < origin%8 {
 		nextSquareBitboard := uint64(1) << uint8(nextSquareSW)
 		moves |= nextSquareBitboard
-		if blockers & nextSquareBitboard != 0 {
+		if blockers&nextSquareBitboard != 0 {
 			break
 		}
 		nextSquareSW -= 9
@@ -308,7 +308,6 @@ var magicDbSizeBishop = [64]uint64{
 	32, 32, 128, 128, 128, 128, 32, 32, 32, 32, 128, 512, 512, 128, 32, 32,
 	32, 32, 128, 512, 512, 128, 32, 32, 32, 32, 128, 128, 128, 128, 32, 32,
 	32, 32, 32, 32, 32, 32, 32, 32, 64, 32, 32, 32, 32, 32, 32, 64}
-
 
 // The actual magic moves database, populated by init
 var magicMovesRook [][]uint64

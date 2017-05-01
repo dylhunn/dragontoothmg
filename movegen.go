@@ -1,4 +1,9 @@
-package movegen
+// The main Dragontooth move generator file.
+// Functions are in this file if (and only if) they are performance-critical
+// move generator components, called while actually generating moves in-game.
+// (The exception is a few one-line helpers for Move and Board in types.go)
+
+package dragontoothmg
 
 import (
 	"math/bits"
@@ -15,7 +20,7 @@ func (b *Board) GeneratePseudolegalMoves() []Move {
 	b.kingMoves(&moves)
 	b.rookMoves(&moves)
 	b.bishopMoves(&moves)
-	//b.queenMoves(&moves)
+	b.queenMoves(&moves)
 	return moves
 }
 
@@ -201,7 +206,6 @@ func (b *Board) rookMoves(moveList *[]Move) {
 	}
 }
 
-
 func (b *Board) bishopMoves(moveList *[]Move) {
 	var ourBishops uint64
 	var friendlyPieces uint64
@@ -223,6 +227,10 @@ func (b *Board) bishopMoves(moveList *[]Move) {
 	}
 }
 
+func (b *Board) queenMoves(moveList *[]Move) {
+
+}
+
 // Helper: converts a targets bitboard into moves, and adds them to the list
 func genMovesFromTargets(moveList *[]Move, origin Square, targets uint64) {
 	for targets != 0 {
@@ -233,4 +241,3 @@ func genMovesFromTargets(moveList *[]Move, origin Square, targets uint64) {
 		*moveList = append(*moveList, move)
 	}
 }
-

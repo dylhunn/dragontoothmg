@@ -1,5 +1,100 @@
 package movegen
 
+import (
+	"math/bits"
+)
+
+// Initialize the magic lookups tables
+func init() {
+	magicMovesRook = make([][]uint64, 64, 64)
+	for i := 0; i < 64; i++ {
+		magicMovesRook[i] = make([]uint64, magicDbSizeRook[i], magicDbSizeRook[i])
+	}
+	generateRookMagicTable()
+}
+
+func generateRookMagicTable() {
+	// For a rook at every board position
+	for i := 0; i < 64; i++ {
+		blockerMask := magicRookBlockerMasks[i]
+		generateRookBlockerPermutations(Square(i), blockerMask, 0)
+	}
+}
+
+// Recursively generate all permutations of active and inactive bits in the
+// blocker mask. Origin is the piece's starting square. BlockerMaskProgress is
+// the original blocker bitboard, from which we eliminate bits.
+// CurrPerm is the bitboard permutation we are accumulating.
+func generateRookBlockerPermutations(origin Square, blockerMaskProgress uint64, currPerm uint64) {
+	if blockerMaskProgress == 0 {
+		// currPerm represents one possible occupancy pattern on the rook blocker bitboard
+		dbindex := (currPerm * magicNumberRook[origin]) >> magicRookShifts[origin]
+
+		magicMovesRook[origin][dbindex] = rookMovesFromBlockers(origin, currPerm)
+		return
+	}
+	nextBit := bits.TrailingZeros64(blockerMaskProgress)
+	blockerMaskProgress &= blockerMaskProgress - 1
+	without := currPerm
+	with := currPerm | (uint64(1) << uint8(nextBit))
+	generateRookBlockerPermutations(origin, blockerMaskProgress, without)
+	generateRookBlockerPermutations(origin, blockerMaskProgress, with)
+}
+
+func rookMovesFromBlockers(origin Square, blockers uint64) uint64 {
+	var moves uint64
+	// Slide up
+	nextMoveUp := (uint64(1) << uint8(origin)) << 8
+	for {
+		if bits.TrailingZeros64(nextMoveUp) >= 64 {
+			break // off the board
+		}
+		moves |= nextMoveUp
+		if blockers&(^nextMoveUp) != blockers { // the coord nextMoveUp is occupied
+			break
+		}
+		nextMoveUp <<= 8
+	}
+	// Slide down
+	nextMoveDown := (uint64(1) << uint8(origin)) >> 8
+	for {
+		if bits.TrailingZeros64(nextMoveDown) >= 64 {
+			break // off the board
+		}
+		moves |= nextMoveDown
+		if blockers&(^nextMoveDown) != blockers { // the coord nextMoveDown is occupied
+			break
+		}
+		nextMoveDown >>= 8
+	}
+	// Slide east
+	nextMoveEast := (uint64(1) << uint8(origin)) << 1
+	for {
+		if bits.TrailingZeros64(nextMoveEast) >= (((int(origin) / 8) + 1) * 8) {
+			break
+		}
+		moves |= nextMoveEast
+		if blockers&(^nextMoveEast) != blockers { // the coord nextMoveEast is occupied
+			break
+		}
+		nextMoveEast <<= 1
+	}
+	// Slide west
+	nextMoveWest := (uint64(1) << uint8(origin)) >> 1
+	for {
+		if bits.TrailingZeros64(nextMoveWest) < ((int(origin)/8)*8) ||
+			bits.TrailingZeros64(nextMoveWest) >= 64 { // flowed off the end
+			break
+		}
+		moves |= nextMoveWest
+		if blockers&(^nextMoveWest) != blockers { // the coord nextMoveWest is occupied
+			break
+		}
+		nextMoveWest >>= 1
+	}
+	return moves
+
+}
 // Masks for attacks
 // In order: knight on A1, B1, C1, ... F8, G8, H8
 var knightMasks = [64]uint64{
@@ -135,3 +230,17 @@ var magicNumberBishop = [64]uint64{
 	0x0000001002020000, 0x0000040408020000, 0x0004040404040000, 0x0002020202020000,
 	0x0000104104104000, 0x0000002082082000, 0x0000000020841000, 0x0000000000208800,
 	0x0000000010020200, 0x0000000404080200, 0x0000040404040400, 0x0002020202020200}
+
+// Database sizes for the magic database, organized by square ID:
+var magicDbSizeRook = [64]uint64{
+	4096, 2048, 2048, 2048, 2048, 2048, 2048, 4096,
+	2048, 1024, 1024, 1024, 1024, 1024, 1024, 2048,
+	2048, 1024, 1024, 1024, 1024, 1024, 1024, 2048,
+	2048, 1024, 1024, 1024, 1024, 1024, 1024, 2048,
+	2048, 1024, 1024, 1024, 1024, 1024, 1024, 2048,
+	2048, 1024, 1024, 1024, 1024, 1024, 1024, 2048,
+	2048, 1024, 1024, 1024, 1024, 1024, 1024, 2048,
+	2048, 1024, 1024, 2048, 2048, 2048, 2048, 2048}
+
+// The actual magic moves database, populated by init
+var magicMovesRook [][]uint64

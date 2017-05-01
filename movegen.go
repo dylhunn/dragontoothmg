@@ -170,7 +170,7 @@ func (b *Board) kingMoves(moveList *[]Move) {
 	genMovesFromTargets(moveList, Square(ourKingLocation), targets)
 }
 
-/*func (b *Board) rookMoves(moveList *[]Move) {
+func (b *Board) rookMoves(moveList *[]Move) {
 	var ourRooks uint64
 	var friendlyPieces uint64
 	if b.wtomove {
@@ -180,7 +180,7 @@ func (b *Board) kingMoves(moveList *[]Move) {
 		ourRooks = b.black.rooks
 		friendlyPieces = b.black.all
 	}
-	allPieces := b.white.all & b.black.all
+	allPieces := b.white.all | b.black.all
 	for ourRooks != 0 {
 		currRook := bits.TrailingZeros64(ourRooks)
 		ourRooks &= ourRooks - 1
@@ -191,6 +191,7 @@ func (b *Board) kingMoves(moveList *[]Move) {
 	}
 }
 
+/*
 func (b *Board) bishopMoves(moveList *[]Move) {
 	var ourBishops uint64
 	var friendlyPieces uint64
@@ -201,7 +202,7 @@ func (b *Board) bishopMoves(moveList *[]Move) {
 		ourBishops = b.black.bishops
 		friendlyPieces = b.black.all
 	}
-	allPieces := b.white.all & b.black.all
+	allPieces := b.white.all | b.black.all
 	for ourBishops != 0 {
 		currBishop := bits.TrailingZeros64(ourBishops)
 		ourBishops &= ourBishops - 1
@@ -222,3 +223,4 @@ func genMovesFromTargets(moveList *[]Move, origin Square, targets uint64) {
 		*moveList = append(*moveList, move)
 	}
 }
+

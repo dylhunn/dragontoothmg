@@ -174,3 +174,24 @@ func TestKingPositions(t *testing.T) {
 		t.Error("King moves: wrong length. Expected 4, got", len(moves2))
 	}
 }
+
+func TestRookPositions(t *testing.T) {
+	positions := map[string]int{
+		"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq -":  0,
+		"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR b KQkq -":  0,
+		"rnbqkbnr/ppppppp1/8/8/7R/8/1PPPPPPP/RNBQKBNR w KQkq -": 18,
+		"rnbqkbnr/ppppppp1/8/8/7R/8/1PPPPPPP/RNBQKBNR b KQkq -": 4,
+		"r1N2bnN/3pp1p1/8/2rR4/7R/8/1PP1P1P1/RN5R w KQkq -": 37,
+		"r1N2bnN/3pp1p1/8/2rR4/7R/8/1PP1P1P1/RN5R b KQkq -": 18,
+		"8/8/8/3r4/8/8/8/8 w KQkq -": 0,
+		"8/8/8/3r4/8/8/8/8 b KQkq -": 14,
+	}
+	for k, v := range positions {
+		moves := make([]Move, 0, 45)
+		b := ParseFen(k)
+		b.rookMoves(&moves)
+		if len(moves) != v {
+			t.Error("Rook moves: wrong length. Expected", v, "but got", len(moves))
+		}
+	}
+}

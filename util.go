@@ -1,10 +1,9 @@
 package movegen
 
 import (
-	//"math/bits"
+	"fmt"
 	"strconv"
 	"strings"
-	"fmt"
 )
 
 // Accepts an algebraic notation chess square, and converts it to a square ID
@@ -18,36 +17,8 @@ func AlgebraicToIndex(alg string) uint8 {
 func IndexToAlgebraic(id Square) string {
 	// BUG(dylhunn): Handle malformed input for index to algebraic
 	rune := rune((uint8(id) % 8) + 'A')
-	return fmt.Sprintf("%c", rune) + strconv.Itoa((int(id) / 8) + 1)
+	return fmt.Sprintf("%c", rune) + strconv.Itoa((int(id)/8)+1)
 }
-
-/*func generateRookMagicTable() {
-	// For a rook at every board position
-	for i := 0; i < 64; i++ {
-		blockerMask := magicRookBlockerMasks[i]
-		generateRookBlockerPermutations(Square(i), blockerMask, 0)
-	}
-}
-
-// Recursively generate all permutations of active and inactive bits in the
-// blocker mask. Origin is the piece's starting square. BlockerMaskProgress is
-// the original blocker bitboard, from which we eliminate bits.
-// CurrPerm is the bitboard permutation we are accumulating.
-func generateRookBlockerPermutations(origin Square, blockerMaskProgress uint64, currPerm uint64) {
-	if blockerMaskProgress == 0 {
-		// the currPerm represents one possible occupancy pattern on the rook blocker bitboard
-		dbindex := (currPerm * magicNumberRook[origin]) >> magicRookShifts[origin]
-
-		magicMovesRook[origin][dbindex] = moves
-		return
-	}
-	nextBit := bits.TrailingZeros64(blockerMaskProgress)
-	blockerMaskProgress &= blockerMaskProgress - 1
-	without := currPerm
-	with := currPerm | (uint64(1) << uint8(nextBit))
-	generateRookBlockerPermutations(origin, blockerMaskProgress, without)
-	generateRookBlockerPermutations(origin, blockerMaskProgress, with)
-}*/
 
 // Parse a board from a FEN string.
 func ParseFen(fen string) Board {

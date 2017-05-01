@@ -34,7 +34,6 @@ type Board struct {
 // This just indicates whether castling rights have been lost, not whether
 // castling is actually possible.
 
-
 func (b *Board) whiteCanCastleQueenside() bool {
 	return b.castlerights&1 == 1
 }
@@ -84,6 +83,7 @@ func (m *Move) To() Square {
 func (m *Move) From() Square {
 	return Square((*m & 0xFC0) >> 6)
 }
+
 // Whether the move involves promoting a pawn.
 func (m *Move) Promote() Piece {
 	return Piece((*m & 0x7000) >> 12)
@@ -109,6 +109,7 @@ type Square uint8
 
 // Piece types; valid in range 0-6, as indicated by the constants for each piece.
 type Piece uint8
+
 const (
 	Nothing = iota
 	Pawn    = iota

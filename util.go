@@ -4,12 +4,21 @@ import (
 	//"math/bits"
 	"strconv"
 	"strings"
+	"fmt"
 )
 
 // Accepts an algebraic notation chess square, and converts it to a square ID
 // as used by Dragontooth (in both the board and move types).
 func AlgebraicToIndex(alg string) uint8 {
+	// BUG(dylhunn): Handle malformed input for algebraic to index
 	return (strings.ToLower(alg)[0] - 'a') + ((alg[1] - '1') * 8)
+}
+
+// Accepts a Dragontooth Square ID, and converts it to an algebraic square.
+func IndexToAlgebraic(id Square) string {
+	// BUG(dylhunn): Handle malformed input for index to algebraic
+	rune := rune((uint8(id) % 8) + 'A')
+	return fmt.Sprintf("%c", rune) + strconv.Itoa((int(id) / 8) + 1)
 }
 
 /*func generateRookMagicTable() {

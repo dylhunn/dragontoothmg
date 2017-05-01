@@ -1,13 +1,7 @@
 package movegen
 
 import (
-	"fmt"
 )
-
-func main() {
-	fmt.Printf("Rook: %#x\n\n", rookOccupancyMasks())
-	fmt.Printf("Bishop: %#x\n", bishopOccupancyMasks())
-}
 
 // Generate the occupancy masks for a rook at each index
 // This represents the locations the rook can slide to that don't block it

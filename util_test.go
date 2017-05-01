@@ -16,6 +16,18 @@ func TestAlgToIdx(t *testing.T) {
 	}
 }
 
+func TestIdxToAlg(t *testing.T) {
+	if IndexToAlgebraic(56) != "A8" {
+		t.Error("Index to algebraic conversion failed:", IndexToAlgebraic(56))
+	}
+	if IndexToAlgebraic(0) != "A1" {
+		t.Error("Index to algebraic conversion failed:", IndexToAlgebraic(0))
+	}
+	if IndexToAlgebraic(23) != "H3" {
+		t.Error("Index to algebraic conversion failed:", IndexToAlgebraic(23))
+	}
+}
+
 func TestParseFen(t *testing.T) {
 	b := ParseFen("1Q2rk2/2p2p2/1n4b1/N7/2B1Pp1q/2B4P/1QPP4/4K2R b K e3 4 30")
 	if b.wtomove {

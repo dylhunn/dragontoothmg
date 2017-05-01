@@ -21,7 +21,7 @@ func IndexToAlgebraic(id Square) string {
 }
 
 // Serializes a board position to a Fen string
-func (b *Board) toFen() string {
+func (b *Board) ToFen() string {
 	var position string
 	var empty int // empty slots
 	for i := 63; i >= 0; i-- {
@@ -71,7 +71,7 @@ func (b *Board) toFen() string {
 				position += strconv.Itoa(empty)
 				empty = 0
 			}
-			if (i != 0) {
+			if i != 0 {
 				position += "/"
 			}
 		}

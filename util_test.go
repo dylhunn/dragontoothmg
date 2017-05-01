@@ -77,8 +77,8 @@ func TestToFen(t *testing.T) {
 		"6nq/6p1/2B4n/1rB2r1R/5q2/2P5/1Q4n1/2B5 b - - 2 999"}
 	for _, fen := range fenTests {
 		b := ParseFen(fen)
-		if b.toFen() != fen {
-			t.Error("Error serializing FEN.\nOutput:  ", b.toFen(), "\nExpected:", fen)
+		if b.ToFen() != fen {
+			t.Error("Error serializing FEN.\nOutput:  ", b.ToFen(), "\nExpected:", fen)
 		}
 	}
 }

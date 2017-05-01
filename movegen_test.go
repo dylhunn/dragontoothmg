@@ -215,17 +215,17 @@ func TestBishopPositions(t *testing.T) {
 
 func TestQueenPositions(t *testing.T) {
 	positions := map[string]int{
-		"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq -":    0,
-		"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR b KQkq -":    0,
-		"rnbqkb1r/pp2pppp/8/4P3/5bN1/8/PPP2PPP/RNBQKBNR w KQkq -": 8,
-		"rnbqkb1r/pp2pppp/8/4P3/5bN1/8/PPP2PPP/RNBQKBNR b KQkq -": 12,
+		"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq -": 0,
+		"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR b KQkq -": 0,
+		"6nq/6p1/2B4n/1rB2r1R/5q2/2P5/1Q4n1/2B5 w - -": 12,
+		"6nq/6p1/2B4n/1rB2r1R/5q2/2P5/1Q4n1/2B5 b - -": 21,
 	}
 	for k, v := range positions {
 		moves := make([]Move, 0, 45)
 		b := ParseFen(k)
-		b.bishopMoves(&moves)
+		b.queenMoves(&moves)
 		if len(moves) != v {
-			t.Error("Bishop moves: wrong length. Expected", v, "but got", len(moves))
+			t.Error("Queen moves: wrong length. Expected", v, "but got", len(moves))
 		}
 	}
 }

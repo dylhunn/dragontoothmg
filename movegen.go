@@ -228,7 +228,30 @@ func (b *Board) bishopMoves(moveList *[]Move) {
 }
 
 func (b *Board) queenMoves(moveList *[]Move) {
-
+	var ourQueens uint64
+	var friendlyPieces uint64
+	if b.wtomove {
+		ourQueens = b.white.queens
+		friendlyPieces = b.white.all
+	} else {
+		ourQueens = b.black.queens
+		friendlyPieces = b.black.all
+	}
+	allPieces := b.white.all | b.black.all
+	for ourQueens != 0 {
+		currQueen := bits.TrailingZeros64(ourQueens)
+		ourQueens &= ourQueens - 1
+		// bishop motion
+		diag_blockers := magicBishopBlockerMasks[currQueen] & allPieces
+		diag_dbindex := (diag_blockers * magicNumberBishop[currQueen]) >> magicBishopShifts[currQueen]
+		diag_targets := magicMovesBishop[currQueen][diag_dbindex] & (^friendlyPieces)
+		genMovesFromTargets(moveList, Square(currQueen), diag_targets)
+		// rook motion
+		ortho_blockers := magicRookBlockerMasks[currQueen] & allPieces
+		ortho_dbindex := (ortho_blockers * magicNumberRook[currQueen]) >> magicRookShifts[currQueen]
+		ortho_targets := magicMovesRook[currQueen][ortho_dbindex] & (^friendlyPieces)
+		genMovesFromTargets(moveList, Square(currQueen), ortho_targets)
+	}
 }
 
 // Helper: converts a targets bitboard into moves, and adds them to the list

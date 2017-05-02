@@ -234,3 +234,10 @@ func TestQueenPositions(t *testing.T) {
 		}
 	}
 }
+
+func TestUnderDirectAttack(t *testing.T) {
+	b1 := ParseFen("")
+	solutions := map[int]bool{
+		AlgebraicToIndex("a5"): true
+	}
+}

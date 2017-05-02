@@ -2,9 +2,9 @@ package dragontoothmg
 
 import (
 	"fmt"
+	"log"
 	"strconv"
 	"strings"
-	"log"
 )
 
 func printMoves(moves []Move) {
@@ -18,7 +18,7 @@ func printMoves(moves []Move) {
 // as used by Dragontooth (in both the board and move types).
 func AlgebraicToIndex(alg string) uint8 {
 	firstchar := strings.ToLower(alg)[0]
-	if (firstchar < 'a' || firstchar > 'h' || alg[1] < '1' || alg[1] > '8') {
+	if firstchar < 'a' || firstchar > 'h' || alg[1] < '1' || alg[1] > '8' {
 		log.SetFlags(log.LstdFlags | log.Lshortfile)
 		log.Fatal("Could not parse algebraic: ", alg)
 	}
@@ -27,7 +27,7 @@ func AlgebraicToIndex(alg string) uint8 {
 
 // Accepts a Dragontooth Square ID, and converts it to an algebraic square.
 func IndexToAlgebraic(id Square) string {
-	if (id < 0 || id > 63) {
+	if id < 0 || id > 63 {
 		log.SetFlags(log.LstdFlags | log.Lshortfile)
 		log.Fatal("Could not parse index: ", id)
 	}

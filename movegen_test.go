@@ -122,11 +122,11 @@ func TestPawnPosition1(t *testing.T) {
 	}
 }
 
-func TestPawnCaptures(t *testing.T) {
+func testPawnCaptures(t *testing.T) {
 	positions := map[string]int{
 		"r1bqkb1r/2p2p1p/p2pn3/1p2pPpP/B1P1PP1N/3P4/PP6/RNBQK2R w KQkq g6 0 0": 6, // with double en passant
-		"r1bqkb1r/2p2p1p/p2pn3/1p2pPpP/2P1PP1N/3P4/PP6/RNBQK2R b KQkq - 0 0": 4, // simple
-		"r1bqkb1r/2p2p1p/p2pn3/1p2pPpP/2P1PP1N/3P4/PP6/RNBQK2R w KQkq - 0 0": 4, // simple
+		"r1bqkb1r/2p2p1p/p2pn3/1p2pPpP/2P1PP1N/3P4/PP6/RNBQK2R b KQkq - 0 0":   4, // simple
+		"r1bqkb1r/2p2p1p/p2pn3/1p2pPpP/2P1PP1N/3P4/PP6/RNBQK2R w KQkq - 0 0":   4, // simple
 		"r1bqkb1r/2p2p1p/p2pn3/1p2pPpP/B1P1PP1N/3P4/PP6/RNBQK2R b KQkq - 0 0":  4, // many captures, but one puts black in check
 		"r1b1kbnr/pppp1ppp/8/1Kp1pP1q/8/1n6/PPPPP1PP/RNBQ1BNR w KQkq e6 0 0":   3, // en passant is possible
 		"r1b1kbnr/pppp1ppp/8/1K2pP1q/8/1n6/PPPPP1PP/RNBQ1BNR w KQkq e6 0 0":    2, // tricky en passant capture into check
@@ -135,9 +135,7 @@ func TestPawnCaptures(t *testing.T) {
 		moves := make([]Move, 0, 45)
 		b := ParseFen(k)
 		b.pawnCaptures(&moves)
-
 		if len(moves) != v {
-			printMoves(moves)
 			t.Error("Pawn captures: wrong length. Expected", v, "but got", len(moves), "\nfor position:", b.ToFen())
 		}
 	}
@@ -295,6 +293,27 @@ func TestUnderDirectAttack(t *testing.T) {
 		attacked := b2.underDirectAttack(false, k)
 		if attacked != v {
 			t.Error("Under attack failed for position", b2.ToFen(), "\nat coord ", IndexToAlgebraic(Square(k)))
+		}
+	}
+}
+
+// Test that the only legal moves are those that break check, through:
+// - moving the king
+// - capture the checking piece
+// - breaking the check
+func testBreakCheck(t *testing.T) {
+	positions := map[string]int{
+		"k1N5/3RrQ2/8/2B4R/8/2N5/8/4K3 w - - 0 0": 13, // Non-pawn check-breaks and captures
+		"8/8/1p2p3/R6k/8/8/8/K7 b - - - -":        3,  // breaks and captures with a pawn
+		"3k4/2P4r/1P6/8/8/8/8/K7 b - - 0 0":       5,  // break the check of a pawn
+		"3k4/2P1P3/1P6/8/8/8/8/K7 b - - 0 0":      4,  // double check with pawns: must move king
+		"3k4/7r/1P6/8/7B/8/3R4/K7 b - - 0 0":      4,  // double check: must move king
+	}
+	for k, v := range positions {
+		b := ParseFen(k)
+		moves := b.GenerateLegalMoves()
+		if len(moves) != v {
+			t.Error("Legal moves breaking check: wrong length. Expected", v, "but got", len(moves), "for position", b.ToFen())
 		}
 	}
 }

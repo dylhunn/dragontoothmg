@@ -265,3 +265,46 @@ func genMovesFromTargets(moveList *[]Move, origin Square, targets uint64) {
 		*moveList = append(*moveList, move)
 	}
 }
+
+func (b *Board) underDirectAttack(square Square, byWhite bool) bool {
+	origin := uint8(square)
+	allPieces := b.white.all | b.black.all
+	var opponentPieces *bitboards
+	if b.wtomove {
+		opponentPieces = &(b.black)
+	} else {
+		opponentPieces = &(b.white)
+	}
+
+	// find attacking knights
+	knight_attackers := knightMasks[origin] & opponentPieces.knights
+	if knight_attackers != 0 {
+		return true
+	}
+
+	// find attacking bishops and queens
+	diag_candidates := magicBishopBlockerMasks[origin] & allPieces
+	diag_dbindex := (diag_candidates * magicNumberBishop[origin]) >> magicBishopShifts[origin]
+	diag_potential_attackers := magicMovesBishop[origin][diag_dbindex] & opponentPieces.all
+	diag_attackers := diag_potential_attackers & (opponentPieces.bishops | opponentPieces.queens)
+	if diag_attackers != 0 {
+		return true
+	}
+	
+	// find attacking rooks and queens
+	ortho_candidates := magicRookBlockerMasks[origin] & allPieces
+	ortho_dbindex := (ortho_candidates * magicNumberRook[origin]) >> magicRookShifts[origin]
+	ortho_potential_attackers := magicMovesRook[origin][ortho_dbindex] & opponentPieces.all
+	ortho_attackers := ortho_potential_attackers & (opponentPieces.rooks | opponentPieces.queens)
+	if ortho_attackers != 0 {
+		return true
+	}
+
+	// find attacking kings
+	// TODO(dylhunn) What if the opponent king can't actually move to the origin square?
+	king_attackers := kingMasks[origin] & opponentPieces.kings
+	if king_attackers != 0 {
+		return true
+	}
+	return false
+}

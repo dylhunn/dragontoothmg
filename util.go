@@ -108,7 +108,7 @@ func (b *Board) ToFen() string {
 	} else {
 		position += "-"
 	}
-	position = position + " " + strconv.Itoa(b.halfmoveclock) + " " + strconv.Itoa(b.fullmoveno)
+	position = position + " " + strconv.Itoa(int(b.halfmoveclock)) + " " + strconv.Itoa(int(b.fullmoveno))
 	return position
 }
 
@@ -185,11 +185,13 @@ func ParseFen(fen string) Board {
 	}
 
 	if len(tokens) > 4 {
-		b.halfmoveclock, _ = strconv.Atoi(tokens[4])
+		result, _ := strconv.Atoi(tokens[4])
+		b.halfmoveclock = uint8(result)
 	}
 
 	if len(tokens) > 5 {
-		b.fullmoveno, _ = strconv.Atoi(tokens[5])
+		result, _ := strconv.Atoi(tokens[5])
+		b.fullmoveno = uint16(result)
 	}
 	return b
 }

@@ -22,10 +22,10 @@ type Board struct {
 	wtomove       bool
 	enpassant     uint8 // square id (16-23 or 40-47) where en passant capture is possible
 	castlerights  uint8
+	halfmoveclock uint8
+	fullmoveno    uint16
 	white         bitboards
 	black         bitboards
-	halfmoveclock int
-	fullmoveno    int
 }
 
 // Castle rights helpers. Data stored inside, from LSB:

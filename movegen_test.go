@@ -308,6 +308,8 @@ func testBreakCheck(t *testing.T) {
 		"3k4/2P4r/1P6/8/8/8/8/K7 b - - 0 0":       5,  // break the check of a pawn
 		"3k4/2P1P3/1P6/8/8/8/8/K7 b - - 0 0":      4,  // double check with pawns: must move king
 		"3k4/7r/1P6/8/7B/8/3R4/K7 b - - 0 0":      4,  // double check: must move king
+		"8/8/8/1k6/2Pp4/8/8/4K3 b - c3 0 0":       9,  // en passant check evasion
+		"8/8/8/1k6/3Pp3/8/8/K4Q2 b - d3 0 0":      6,  //en passant check evasion
 	}
 	for k, v := range positions {
 		b := ParseFen(k)
@@ -318,9 +320,87 @@ func testBreakCheck(t *testing.T) {
 	}
 }
 
+// Test that pinned pieces can only move along the pin ray
+func testPinnedBishop(t *testing.T) {
+	positions := map[string]int{
+		"4k3/3b4/8/8/Q7/8/8/4K3 b - - 0 0":      3,  // pinned bishop
+		"4k3/3b4/2b5/8/Q7/8/8/4K3 b - - 0 0":    14, // a "double" pin is not actually a pin
+		"4k3/3b1b2/2Q3Q1/8/8/8/8/4K3 b - - 0 0": 2,  // two close pins
+	}
+	for k, v := range positions {
+		moves := make([]Move, 0, 45)
+		b := ParseFen(k)
+		b.bishopMoves(&moves)
+		if len(moves) != v {
+			t.Error("Legal moves for pinned bishops: wrong length. Expected", v, "but got", len(moves), "for position", b.ToFen())
+		}
+	}
+}
+
+func testPinnedKnight(t *testing.T) {
+	positions := map[string]int{
+		"4k3/3n1n2/2Q3Q1/8/8/8/8/4K3 b - - 0 0": 0, // two close pins
+		"4k3/8/8/8/1q6/2N5/8/4K3 w - - 0 0":     0, // normal pin
+	}
+	for k, v := range positions {
+		moves := make([]Move, 0, 45)
+		b := ParseFen(k)
+		b.knightMoves(&moves)
+		if len(moves) != v {
+			t.Error("Legal moves for pinned bishops: wrong length. Expected", v, "but got", len(moves), "for position", b.ToFen())
+		}
+	}
+}
+
+func testPinnedQueen(t *testing.T) {
+	positions := map[string]int{
+		"4k3/8/8/8/1q6/2Q5/8/4K3 w - - 0 0":     2, // normal pin
+		"4k3/8/4r3/4Q3/1q6/2Q5/8/4K3 w - - 0 0": 6,
+	}
+	for k, v := range positions {
+		moves := make([]Move, 0, 45)
+		b := ParseFen(k)
+		b.queenMoves(&moves)
+		if len(moves) != v {
+			t.Error("Legal moves for pinned bishops: wrong length. Expected", v, "but got", len(moves), "for position", b.ToFen())
+		}
+	}
+}
+
+func testPinnedRook(t *testing.T) {
+	positions := map[string]int{
+		"4k3/8/4r3/4Q3/1q6/2Q5/8/4K3 b - - 0 0": 2,
+	}
+	for k, v := range positions {
+		moves := make([]Move, 0, 45)
+		b := ParseFen(k)
+		b.rookMoves(&moves)
+		if len(moves) != v {
+			t.Error("Legal moves for pinned bishops: wrong length. Expected", v, "but got", len(moves), "for position", b.ToFen())
+		}
+	}
+}
+
+func testPinnedPawns(t *testing.T) {
+	positions := map[string]int{
+		"4k3/3p4/2B1p3/8/1q6/4R3/3P4/4K3 w - - 0 0": 0,
+		"4k3/3p4/2B1p3/8/1q6/4R3/3P4/4K3 b - - 0 0": 2,
+	}
+	for k, v := range positions {
+		moves := make([]Move, 0, 45)
+		b := ParseFen(k)
+		b.pawnPushes(&moves)
+		b.pawnCaptures(&moves)
+		if len(moves) != v {
+			t.Error("Legal moves for pinned bishops: wrong length. Expected", v, "but got", len(moves), "for position", b.ToFen())
+		}
+	}
+}
+
 // An incomplete, yet giant, test suite of positions. Tests legal move generation.
 func testLegalMoves(t *testing.T) {
-	positions := map[string]int{"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1": 20,
+	positions := map[string]int{
+		"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1":             20,
 		"r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1": 48,
 		"4k3/8/8/8/8/8/8/4K2R w K - 0 1":                                       15,
 		"4k3/8/8/8/8/8/8/R3K3 w Q - 0 1":                                       16,

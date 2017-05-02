@@ -148,27 +148,35 @@ func (b *Board) knightMoves(moveList *[]Move) {
 }
 
 // TODO: Can't castle from, into, or through check
+// This assumes exactly one king is present
 func (b *Board) kingMoves(moveList *[]Move) {
 	var ourKingLocation uint8
 	var noFriendlyPieces uint64
 	var canCastleQueenside bool
 	var canCastleKingside bool
+	var ptrToOurBitboards *bitboards
 	allPieces := b.white.all & b.black.all
 	if b.wtomove {
 		ourKingLocation = uint8(bits.TrailingZeros64(b.white.kings))
+		ptrToOurBitboards = &(b.white)
 		noFriendlyPieces = ^(b.white.all)
 		// To castle, we must have rights and a clear path
 		kingsideClear := allPieces&(1<<5)&(1<<6) == 0
 		queensideClear := allPieces&(1<<3)&(1<<2)&(1<<1) == 0
-		canCastleQueenside = b.whiteCanCastleQueenside() && queensideClear
-		canCastleKingside = b.whiteCanCastleKingside() && kingsideClear
+		canCastleQueenside = b.whiteCanCastleQueenside() &&
+			queensideClear && !b.anyUnderDirectAttack(true, 0, 1, 2, 3, 4)
+		canCastleKingside = b.whiteCanCastleKingside() &&
+			kingsideClear && !b.anyUnderDirectAttack(true, 4, 5, 6, 7)
 	} else {
 		ourKingLocation = uint8(bits.TrailingZeros64(b.black.kings))
+		ptrToOurBitboards = &(b.black)
 		noFriendlyPieces = ^(b.black.all)
 		kingsideClear := allPieces&(1<<61)&(1<<62) == 0
 		queensideClear := allPieces&(1<<57)&(1<<58)&(1<<59) == 0
-		canCastleQueenside = b.blackCanCastleQueenside() && queensideClear
-		canCastleKingside = b.blackCanCastleKingside() && kingsideClear
+		canCastleQueenside = b.blackCanCastleQueenside() &&
+			queensideClear && !b.anyUnderDirectAttack(false, 56, 57, 58, 59, 60)
+		canCastleKingside = b.blackCanCastleKingside() &&
+			kingsideClear && !b.anyUnderDirectAttack(false, 60, 61, 62, 63)
 	}
 	if canCastleKingside {
 		var move Move
@@ -181,9 +189,27 @@ func (b *Board) kingMoves(moveList *[]Move) {
 		*moveList = append(*moveList, move)
 	}
 
-	// This assumes only one king is present
+	// TODO(dylhunn): Modifying the board is NOT thread-safe.
+	// We only do this to avoid the king danger problem, aka moving away from a 
+	// checking slider.
+	oldKings := ptrToOurBitboards.kings
+	ptrToOurBitboards.kings = 0
+	ptrToOurBitboards.all &= ^(1 << ourKingLocation)
+
 	targets := kingMasks[ourKingLocation] & noFriendlyPieces
-	genMovesFromTargets(moveList, Square(ourKingLocation), targets)
+	for targets != 0 {
+		target := bits.TrailingZeros64(targets)
+		targets &= targets - 1
+		if b.underDirectAttack(b.wtomove, uint8(target)) {
+			continue
+		}
+		var move Move
+		move.Setfrom(Square(ourKingLocation)).Setto(Square(target))
+		*moveList = append(*moveList, move)
+	}
+
+	ptrToOurBitboards.kings = oldKings
+	ptrToOurBitboards.all |= (1 << ourKingLocation)
 }
 
 func (b *Board) rookMoves(moveList *[]Move) {
@@ -266,11 +292,19 @@ func genMovesFromTargets(moveList *[]Move, origin Square, targets uint64) {
 	}
 }
 
-func (b *Board) underDirectAttack(square Square, byWhite bool) bool {
-	origin := uint8(square)
+func (b *Board) anyUnderDirectAttack(byBlack bool, squares ...uint8) bool {
+	for _, v := range squares {
+		if b.underDirectAttack(byBlack, v) {
+			return true
+		}
+	}
+	return false
+}
+
+func (b *Board) underDirectAttack(byBlack bool, origin uint8) bool {
 	allPieces := b.white.all | b.black.all
 	var opponentPieces *bitboards
-	if b.wtomove {
+	if byBlack {
 		opponentPieces = &(b.black)
 	} else {
 		opponentPieces = &(b.white)
@@ -290,7 +324,7 @@ func (b *Board) underDirectAttack(square Square, byWhite bool) bool {
 	if diag_attackers != 0 {
 		return true
 	}
-	
+
 	// find attacking rooks and queens
 	ortho_candidates := magicRookBlockerMasks[origin] & allPieces
 	ortho_dbindex := (ortho_candidates * magicNumberRook[origin]) >> magicRookShifts[origin]
@@ -301,10 +335,29 @@ func (b *Board) underDirectAttack(square Square, byWhite bool) bool {
 	}
 
 	// find attacking kings
-	// TODO(dylhunn) What if the opponent king can't actually move to the origin square?
+	// TODO(dylhunn): What if the opponent king can't actually move to the origin square?
 	king_attackers := kingMasks[origin] & opponentPieces.kings
 	if king_attackers != 0 {
 		return true
 	}
+
+	// find attacking pawns
+	var pawn_attackers uint64 = 0
+	if byBlack {
+		pawn_attackers = 1 << (origin + 7)
+		pawn_attackers |= 1 << (origin + 9)
+	} else {
+		if origin-7 >= 0 {
+			pawn_attackers = 1 << (origin - 7)
+		}
+		if origin-9 >= 0 {
+			pawn_attackers |= 1 << (origin - 9)
+		}
+	}
+	pawn_attackers &= opponentPieces.pawns
+	if pawn_attackers != 0 {
+		return true
+	}
+
 	return false
 }

@@ -20,7 +20,7 @@ func IndexToAlgebraic(id Square) string {
 	return fmt.Sprintf("%c", rune) + strconv.Itoa((int(id)/8)+1)
 }
 
-// Serializes a board position to a Fen string
+// Serializes a board position to a Fen string.
 func (b *Board) ToFen() string {
 	var position string
 	var empty int // empty slots

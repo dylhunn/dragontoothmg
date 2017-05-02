@@ -103,7 +103,8 @@ func (m *Move) Setpromote(p Piece) *Move {
 	return m
 }
 func (m *Move) String() string {
-	return fmt.Sprintf("[from: %v, to: %v, promote: %v]", m.From(), m.To(), m.Promote())
+	return fmt.Sprintf("[from: %v, to: %v, promote: %v]",
+		IndexToAlgebraic(m.From()), IndexToAlgebraic(m.To()), m.Promote())
 }
 
 // Square index values from 0-63.

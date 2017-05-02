@@ -11,20 +11,29 @@ func TestAlgToIdx(t *testing.T) {
 	if AlgebraicToIndex("A1") != 0 {
 		t.Error("Algebraic to index conversion failed.")
 	}
-	if AlgebraicToIndex("H3") != 23 {
+	if AlgebraicToIndex("h3") != 23 {
+		t.Error("Algebraic to index conversion failed.")
+	}
+	if AlgebraicToIndex("a6") != 40 {
+		t.Error("Algebraic to index conversion failed.")
+	}
+	if AlgebraicToIndex("H4") != 31 {
 		t.Error("Algebraic to index conversion failed.")
 	}
 }
 
 func TestIdxToAlg(t *testing.T) {
 	if IndexToAlgebraic(56) != "a8" {
-		t.Error("Index to algebraic conversion failed:", IndexToAlgebraic(56))
+		t.Error("Index to algebraic conversion failed:", IndexToAlgebraic(56), "instead of a8")
 	}
 	if IndexToAlgebraic(0) != "a1" {
-		t.Error("Index to algebraic conversion failed:", IndexToAlgebraic(0))
+		t.Error("Index to algebraic conversion failed:", IndexToAlgebraic(0), "instead of a1")
 	}
-	if IndexToAlgebraic(23) != "h3" {
-		t.Error("Index to algebraic conversion failed:", IndexToAlgebraic(23))
+	if IndexToAlgebraic(40) != "a6" {
+		t.Error("Index to algebraic conversion failed:", IndexToAlgebraic(31), "instead of a6")
+	}
+	if IndexToAlgebraic(31) != "h4" {
+		t.Error("Index to algebraic conversion failed:", IndexToAlgebraic(40), "instead of h4")
 	}
 }
 
@@ -73,7 +82,7 @@ func TestToFen(t *testing.T) {
 		"1Q2rk2/2p2p2/1n4b1/N7/2B1Pp1q/2B4P/1QPP4/4K2R b K e3 4 30",
 		"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 0",
 		"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR b KQkq - 0 10",
-		"6nq/6p1/2B4n/1rB2r1R/5q2/2P5/1Q4n1/2B5 w - - 6 12",
+		"6nq/6p1/2B4n/1rB2r1R/5q2/2P5/1Q4n1/2B5 w - h8 6 12",
 		"6nq/6p1/2B4n/1rB2r1R/5q2/2P5/1Q4n1/2B5 b - - 2 999"}
 	for _, fen := range fenTests {
 		b := ParseFen(fen)

@@ -13,7 +13,7 @@ import (
 // The main API entrypoint. Generates all pseudo-legal moves for a given board.
 // "Pseudo-legal moves" means that checking is ignored; generated moves might
 // move into check, fail to break check, or castle through check.
-func (b *Board) GeneratePseudolegalMoves() []Move {
+func (b *Board) GenerateLegalMoves() []Move {
 	moves := make([]Move, 0, 45)
 	b.pawnPushes(&moves)
 	b.pawnCaptures(&moves)
@@ -109,8 +109,8 @@ func (b *Board) pawnCaptures(moveList *[]Move) {
 }
 
 func (b *Board) pawnCaptureBitboards() (east uint64, west uint64) {
-	notAFile := uint64(0x7F7F7F7F7F7F7F7F)
-	notHFile := uint64(0xFEFEFEFEFEFEFEFE)
+	notHFile := uint64(0x7F7F7F7F7F7F7F7F)
+	notAFile := uint64(0xFEFEFEFEFEFEFEFE)
 	var targets uint64
 	if b.enpassant > 0 { // an en-passant target is active
 		targets = (1 << b.enpassant)
@@ -309,13 +309,11 @@ func (b *Board) underDirectAttack(byBlack bool, origin uint8) bool {
 	} else {
 		opponentPieces = &(b.white)
 	}
-
 	// find attacking knights
 	knight_attackers := knightMasks[origin] & opponentPieces.knights
 	if knight_attackers != 0 {
 		return true
 	}
-
 	// find attacking bishops and queens
 	diag_candidates := magicBishopBlockerMasks[origin] & allPieces
 	diag_dbindex := (diag_candidates * magicNumberBishop[origin]) >> magicBishopShifts[origin]
@@ -324,7 +322,6 @@ func (b *Board) underDirectAttack(byBlack bool, origin uint8) bool {
 	if diag_attackers != 0 {
 		return true
 	}
-
 	// find attacking rooks and queens
 	ortho_candidates := magicRookBlockerMasks[origin] & allPieces
 	ortho_dbindex := (ortho_candidates * magicNumberRook[origin]) >> magicRookShifts[origin]
@@ -333,7 +330,6 @@ func (b *Board) underDirectAttack(byBlack bool, origin uint8) bool {
 	if ortho_attackers != 0 {
 		return true
 	}
-
 	// find attacking kings
 	// TODO(dylhunn): What if the opponent king can't actually move to the origin square?
 	king_attackers := kingMasks[origin] & opponentPieces.kings
@@ -358,6 +354,5 @@ func (b *Board) underDirectAttack(byBlack bool, origin uint8) bool {
 	if pawn_attackers != 0 {
 		return true
 	}
-
 	return false
 }

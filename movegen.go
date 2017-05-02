@@ -190,7 +190,7 @@ func (b *Board) kingMoves(moveList *[]Move) {
 	}
 
 	// TODO(dylhunn): Modifying the board is NOT thread-safe.
-	// We only do this to avoid the king danger problem, aka moving away from a 
+	// We only do this to avoid the king danger problem, aka moving away from a
 	// checking slider.
 	oldKings := ptrToOurBitboards.kings
 	ptrToOurBitboards.kings = 0

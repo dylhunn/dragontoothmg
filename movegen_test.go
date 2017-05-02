@@ -236,8 +236,44 @@ func TestQueenPositions(t *testing.T) {
 }
 
 func TestUnderDirectAttack(t *testing.T) {
-	b1 := ParseFen("")
-	solutions := map[int]bool{
-		AlgebraicToIndex("a5"): true
+	b1 := ParseFen("r1N1kbnN/3pp1p1/1p2q3/2rR1b2/2QP1nBR/6B1/1PP1P1P1/RNK4R b - - 0 0")
+	solutionsByBlack := map[uint8]bool{
+		AlgebraicToIndex("a5"): true,
+		AlgebraicToIndex("a7"): true,
+		AlgebraicToIndex("d8"): true,
+		AlgebraicToIndex("f7"): true,
+		AlgebraicToIndex("h7"): true,
+		AlgebraicToIndex("h6"): true,
+		AlgebraicToIndex("d8"): true,
+		AlgebraicToIndex("e2"): true,
+		AlgebraicToIndex("f5"): true,
+		AlgebraicToIndex("b5"): true,
+		AlgebraicToIndex("d1"): false,
+		AlgebraicToIndex("g5"): false,
+		AlgebraicToIndex("b7"): false,
+	}
+	for k, v := range solutionsByBlack {
+		attacked := b1.underDirectAttack(true, k)
+		if attacked != v {
+			t.Error("Under attack failed for position", b1.ToFen(), "\nat coord ", IndexToAlgebraic(Square(k)))
+		}
+	}
+
+	b2 := ParseFen("r1N1kbnN/3pp3/1p2q3/2rR1bpP/2QP1nBR/6B1/1PP1P1P1/RNK4R b - 46 0 0")
+	solutionsByWhite := map[uint8]bool{
+		AlgebraicToIndex("c2"): true, // TODO(dylhunn): this case is dubious
+		AlgebraicToIndex("b3"): true,
+		AlgebraicToIndex("b5"): true,
+		AlgebraicToIndex("b6"): true,
+		AlgebraicToIndex("g6"): true,
+		AlgebraicToIndex("g8"): false,
+		AlgebraicToIndex("e6"): false,
+		AlgebraicToIndex("e8"): false,
+	}
+	for k, v := range solutionsByWhite {
+		attacked := b2.underDirectAttack(false, k)
+		if attacked != v {
+			t.Error("Under attack failed for position", b2.ToFen(), "\nat coord ", IndexToAlgebraic(Square(k)))
+		}
 	}
 }

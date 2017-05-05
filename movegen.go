@@ -15,6 +15,12 @@ import (
 // move into check, fail to break check, or castle through check.
 func (b *Board) GenerateLegalMoves() []Move {
 	moves := make([]Move, 0, 45)
+	// First, see if we are currently in check. If we are, invoke a special check-
+	// evasion move generator.
+
+	// Then, calculate all the ansolutely pinned pieces, and compute their moves.
+	//pinnedPieces := b.generatePinnedMoves(&moves)
+	// Finally, compute ordinary moves, ignoring absolutelypinned pieces.
 	b.pawnPushes(&moves)
 	b.pawnCaptures(&moves)
 	b.knightMoves(&moves)
@@ -25,6 +31,11 @@ func (b *Board) GenerateLegalMoves() []Move {
 	return moves
 }
 
+/*func (b *Board) generatePinnedMoves(moveList *[]Move) uint64 {
+
+}*/
+
+// Generate moves involving advancing pawns.
 func (b *Board) pawnPushes(moveList *[]Move) {
 	targets, doubleTargets := b.pawnPushBitboards()
 	oneRankBack := 8
@@ -62,6 +73,7 @@ func (b *Board) pawnPushes(moveList *[]Move) {
 	}
 }
 
+// A helper function that produces bitboards of valid pawn push locations.
 func (b *Board) pawnPushBitboards() (targets uint64, doubleTargets uint64) {
 	free := (^b.white.all) & (^b.black.all)
 	if b.wtomove {
@@ -76,6 +88,7 @@ func (b *Board) pawnPushBitboards() (targets uint64, doubleTargets uint64) {
 	return
 }
 
+// A function that computes available pawn captures.
 func (b *Board) pawnCaptures(moveList *[]Move) {
 	east, west := b.pawnCaptureBitboards()
 	bitboards := [2]uint64{east, west}
@@ -108,6 +121,7 @@ func (b *Board) pawnCaptures(moveList *[]Move) {
 	}
 }
 
+// A helper than generates bitboards for available pawn captures.
 func (b *Board) pawnCaptureBitboards() (east uint64, west uint64) {
 	notHFile := uint64(0x7F7F7F7F7F7F7F7F)
 	notAFile := uint64(0xFEFEFEFEFEFEFEFE)
@@ -129,6 +143,7 @@ func (b *Board) pawnCaptureBitboards() (east uint64, west uint64) {
 	return
 }
 
+// Generate all knight moves.
 func (b *Board) knightMoves(moveList *[]Move) {
 	var ourKnights uint64
 	var noFriendlyPieces uint64
@@ -147,8 +162,11 @@ func (b *Board) knightMoves(moveList *[]Move) {
 	}
 }
 
-// TODO: Can't castle from, into, or through check
-// This assumes exactly one king is present
+// Generate all available king moves.
+// First, if castling is possible, verifies the checking prohibitions on castling.
+// Then, outputs castling moves (if any), and king moves.
+// Not thread-safe, since the king is removed from the board to compute 
+// king-danger squares.
 func (b *Board) kingMoves(moveList *[]Move) {
 	var ourKingLocation uint8
 	var noFriendlyPieces uint64
@@ -212,6 +230,7 @@ func (b *Board) kingMoves(moveList *[]Move) {
 	ptrToOurBitboards.all |= (1 << ourKingLocation)
 }
 
+// Generate all rook moves using magic bitboards.
 func (b *Board) rookMoves(moveList *[]Move) {
 	var ourRooks uint64
 	var friendlyPieces uint64
@@ -233,6 +252,7 @@ func (b *Board) rookMoves(moveList *[]Move) {
 	}
 }
 
+// Generate all bishop moves using magic bitboards.
 func (b *Board) bishopMoves(moveList *[]Move) {
 	var ourBishops uint64
 	var friendlyPieces uint64
@@ -254,6 +274,7 @@ func (b *Board) bishopMoves(moveList *[]Move) {
 	}
 }
 
+// Generate all queen moves using magic bitboards.
 func (b *Board) queenMoves(moveList *[]Move) {
 	var ourQueens uint64
 	var friendlyPieces uint64
@@ -281,7 +302,7 @@ func (b *Board) queenMoves(moveList *[]Move) {
 	}
 }
 
-// Helper: converts a targets bitboard into moves, and adds them to the list
+// Helper: converts a targets bitboard into moves, and adds them to the moves list.
 func genMovesFromTargets(moveList *[]Move, origin Square, targets uint64) {
 	for targets != 0 {
 		target := bits.TrailingZeros64(targets)
@@ -292,6 +313,8 @@ func genMovesFromTargets(moveList *[]Move, origin Square, targets uint64) {
 	}
 }
 
+// Variadic function that returns whether any of the specified squares is being attacked
+// by the opponent. Potentially expensive.
 func (b *Board) anyUnderDirectAttack(byBlack bool, squares ...uint8) bool {
 	for _, v := range squares {
 		if b.underDirectAttack(byBlack, v) {
@@ -301,6 +324,7 @@ func (b *Board) anyUnderDirectAttack(byBlack bool, squares ...uint8) bool {
 	return false
 }
 
+// Compute whether an individual square is under direct attack. Potentially expensive.
 func (b *Board) underDirectAttack(byBlack bool, origin uint8) bool {
 	allPieces := b.white.all | b.black.all
 	var opponentPieces *bitboards
@@ -336,7 +360,6 @@ func (b *Board) underDirectAttack(byBlack bool, origin uint8) bool {
 	if king_attackers != 0 {
 		return true
 	}
-
 	// find attacking pawns
 	var pawn_attackers uint64 = 0
 	if byBlack {

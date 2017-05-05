@@ -109,8 +109,8 @@ func (b *Board) pawnCaptures(moveList *[]Move) {
 }
 
 func (b *Board) pawnCaptureBitboards() (east uint64, west uint64) {
-	notAFile := uint64(0x7F7F7F7F7F7F7F7F)
-	notHFile := uint64(0xFEFEFEFEFEFEFEFE)
+	notAFile := uint64(0xFEFEFEFEFEFEFEFE)
+	notHFile := uint64(0x7F7F7F7F7F7F7F7F)
 	var targets uint64
 	if b.enpassant > 0 { // an en-passant target is active
 		targets = (1 << b.enpassant)

@@ -7,6 +7,21 @@ import (
 	"strings"
 )
 
+func printBitboard(bitboard uint64) {
+	for i := 63; i >= 0; i-- {
+		j := (i/8)*8 + (7 - (i % 8))
+		if bitboard&(uint64(1)<<uint8(j)) == 0 {
+			fmt.Print("-")
+		} else {
+			fmt.Print("X")
+		}
+		if i%8 == 0 {
+			fmt.Println()
+		}
+	}
+	fmt.Println()
+}
+
 func printMoves(moves []Move) {
 	fmt.Println("Moves:")
 	for _, v := range moves {

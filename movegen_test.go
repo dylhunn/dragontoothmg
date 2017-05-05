@@ -187,6 +187,8 @@ func TestKingPositions(t *testing.T) {
 		"r3k2r/7B/8/8/3q4/8/P6P/R3K2R b KQkq - 0 0":                   6,
 		"8/1pk5/8/8/7b/2R5/8/4K2R w K - 0 0":                          4,
 		"8/1pk5/8/8/7b/2R5/8/4K2R b K - 0 0":                          5,
+		"4k3/8/8/8/8/8/8/4K2R w K - 0 0":                              6, // white short castle
+		"4k3/8/8/8/8/8/8/4K1NR w K - 0 0":                             5, // short castle blocked
 	}
 	for k, v := range positions {
 		moves := make([]Move, 0, 45)
@@ -321,6 +323,7 @@ func testBreakCheck(t *testing.T) {
 }
 
 // Test that pinned pieces can only move along the pin ray
+
 func testPinnedBishop(t *testing.T) {
 	positions := map[string]int{
 		"4k3/3b4/8/8/Q7/8/8/4K3 b - - 0 0":      3,  // pinned bishop
@@ -330,7 +333,7 @@ func testPinnedBishop(t *testing.T) {
 	for k, v := range positions {
 		moves := make([]Move, 0, 45)
 		b := ParseFen(k)
-		b.bishopMoves(&moves)
+		b.generatePinnedMoves(&moves)
 		if len(moves) != v {
 			t.Error("Legal moves for pinned bishops: wrong length. Expected", v, "but got", len(moves), "for position", b.ToFen())
 		}
@@ -345,7 +348,7 @@ func testPinnedKnight(t *testing.T) {
 	for k, v := range positions {
 		moves := make([]Move, 0, 45)
 		b := ParseFen(k)
-		b.knightMoves(&moves)
+		b.generatePinnedMoves(&moves)
 		if len(moves) != v {
 			t.Error("Legal moves for pinned bishops: wrong length. Expected", v, "but got", len(moves), "for position", b.ToFen())
 		}
@@ -360,39 +363,63 @@ func testPinnedQueen(t *testing.T) {
 	for k, v := range positions {
 		moves := make([]Move, 0, 45)
 		b := ParseFen(k)
-		b.queenMoves(&moves)
+		b.generatePinnedMoves(&moves)
 		if len(moves) != v {
 			t.Error("Legal moves for pinned bishops: wrong length. Expected", v, "but got", len(moves), "for position", b.ToFen())
 		}
 	}
 }
 
-func testPinnedRook(t *testing.T) {
+func TestOrthoPins(t *testing.T) {
 	positions := map[string]int{
 		"4k3/8/4r3/4Q3/1q6/2Q5/8/4K3 b - - 0 0": 2,
+		"7k/8/8/8/1r2R3/8/8/4K3 w - - 0 0":      0, // "false pin"
+		"7k/8/8/8/1r2R3/8/8/4K3 b - - 0 0":      0, // no pin at all
+		"3k4/8/3n4/8/8/8/3Q4/7K b - - 0 0":      0, // knight pin
+		"8/8/1r3QK1/3QQ3/8/kr6/8/8 w - - 0 0":   4, // queen pin
+		"4k3/4p3/8/8/8/4R3/q2PK3/8 w - - 0 0":   0, // horizontal pawn*/
+		"4k3/4p3/8/8/8/4R3/q2PK3/8 b - - 0 0":   2,
+		"8/4k3/8/4p3/8/4R3/q2PK3/8 b - - 0 0":   1,
+	}
+	pinLocs := map[string]uint8{
+		"4k3/8/4r3/4Q3/1q6/2Q5/8/4K3 b - - 0 0": AlgebraicToIndex("e6"),
+		"7k/8/8/8/1r2R3/8/8/4K3 w - - 0 0":      64, // "false pin"
+		"7k/8/8/8/1r2R3/8/8/4K3 b - - 0 0":      64, // no pin at all
+		"3k4/8/3n4/8/8/8/3Q4/7K b - - 0 0":      AlgebraicToIndex("d6"),
+		"8/8/1r3QK1/3QQ3/8/kr6/8/8 w - - 0 0":   AlgebraicToIndex("f6"),
+		"4k3/4p3/8/8/8/4R3/q2PK3/8 w - - 0 0":   AlgebraicToIndex("d2"), // horizontal
+		"4k3/4p3/8/8/8/4R3/q2PK3/8 b - - 0 0":   AlgebraicToIndex("e7"),
+		"8/4k3/8/4p3/8/4R3/q2PK3/8 b - - 0 0":   AlgebraicToIndex("e5"),
 	}
 	for k, v := range positions {
 		moves := make([]Move, 0, 45)
 		b := ParseFen(k)
-		b.rookMoves(&moves)
+		result := b.generatePinnedMoves(&moves)
 		if len(moves) != v {
 			t.Error("Legal moves for pinned bishops: wrong length. Expected", v, "but got", len(moves), "for position", b.ToFen())
+			printMoves(moves)
+		}
+		if pinLocs[k] == 64 {
+			if result != 0 {
+				t.Error("Found a false pin")
+			}
+		} else if pinLocs[k] != uint8(bits.TrailingZeros64(result)) {
+			t.Error("Wrong pinned location")
 		}
 	}
 }
 
 func testPinnedPawns(t *testing.T) {
 	positions := map[string]int{
-		"4k3/3p4/2B1p3/8/1q6/4R3/3P4/4K3 w - - 0 0": 0,
+		"4k3/3p4/2B1p3/8/1q6/4R3/3P4/4K3 w - - 0 0": 0, // diagonal
 		"4k3/3p4/2B1p3/8/1q6/4R3/3P4/4K3 b - - 0 0": 2,
 	}
 	for k, v := range positions {
 		moves := make([]Move, 0, 45)
 		b := ParseFen(k)
-		b.pawnPushes(&moves)
-		b.pawnCaptures(&moves)
+		b.generatePinnedMoves(&moves)
 		if len(moves) != v {
-			t.Error("Legal moves for pinned bishops: wrong length. Expected", v, "but got", len(moves), "for position", b.ToFen())
+			t.Error("Legal moves for pinned pawns: wrong length. Expected", v, "but got", len(moves), "for position", b.ToFen())
 		}
 	}
 }

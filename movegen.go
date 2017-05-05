@@ -1,4 +1,4 @@
-// dragontoothmg is a fast chess move generator library based on magic bitboards.
+// dragontoothmg is a fast chess legal move generator library based on magic bitboards.
 package dragontoothmg
 
 // The main Dragontooth move generator file.
@@ -10,17 +10,17 @@ import (
 	"math/bits"
 )
 
-// The main API entrypoint. Generates all pseudo-legal moves for a given board.
-// "Pseudo-legal moves" means that checking is ignored; generated moves might
-// move into check, fail to break check, or castle through check.
+// The main API entrypoint. Generates all legal moves for a given board.
 func (b *Board) GenerateLegalMoves() []Move {
 	moves := make([]Move, 0, 45)
 	// First, see if we are currently in check. If we are, invoke a special check-
 	// evasion move generator.
 
-	// Then, calculate all the ansolutely pinned pieces, and compute their moves.
-	//pinnedPieces := b.generatePinnedMoves(&moves)
-	// Finally, compute ordinary moves, ignoring absolutelypinned pieces.
+	// Then, calculate all the absolutely pinned pieces, and compute their moves.
+	pinnedPieces := b.generatePinnedMoves(&moves)
+	_ = ^pinnedPieces
+
+	// Finally, compute ordinary moves, ignoring absolutely pinned pieces.
 	b.pawnPushes(&moves)
 	b.pawnCaptures(&moves)
 	b.knightMoves(&moves)
@@ -31,9 +31,66 @@ func (b *Board) GenerateLegalMoves() []Move {
 	return moves
 }
 
-/*func (b *Board) generatePinnedMoves(moveList *[]Move) uint64 {
+// Calcuate the available moves for absolutely pinned pieces (pinned to the king).
+// Return a bitboard of all pieces that are pinned.
+func (b *Board) generatePinnedMoves(moveList *[]Move) uint64 {
+	var ourKingIdx uint8
+	var ourPieces, oppPieces *bitboards
+	var allPinnedPieces uint64 = 0
+	if b.wtomove { // Assumes only one king on the board
+		ourKingIdx = uint8(bits.TrailingZeros64(b.white.kings))
+		ourPieces = &(b.white)
+		oppPieces = &(b.black)
+	} else {
+		ourKingIdx = uint8(bits.TrailingZeros64(b.black.kings))
+		ourPieces = &(b.black)
+		oppPieces = &(b.white)
+	}
+	allPieces := oppPieces.all | ourPieces.all
+	// Calculate king moves as if it was a rook.
+	// "king targets" includes our own friendly pieces, for the purpose of identifying pins.
+	kingOrthoTargets := calculateRookMoveBitboard(ourKingIdx, allPieces)
 
-}*/
+	oppRooks := oppPieces.rooks | oppPieces.queens
+	for oppRooks != 0 { // For each opponent ortho slider
+		currRookIdx := uint8(bits.TrailingZeros64(oppRooks))
+		oppRooks &= oppRooks - 1
+		rookTargets := calculateRookMoveBitboard(currRookIdx, allPieces) & (^(oppPieces.all))
+		pinnedPiece := rookTargets & kingOrthoTargets // A piece is pinned iff it falls along both attack rays.
+		if pinnedPiece == 0 {                         // there is no pin
+			continue
+		}
+		pinnedPieceIdx := uint8(bits.TrailingZeros64(pinnedPiece))
+		sameRank := pinnedPieceIdx/8 == ourKingIdx/8 && pinnedPieceIdx/8 == currRookIdx/8
+		sameFile := pinnedPieceIdx%8 == ourKingIdx%8 && pinnedPieceIdx%8 == currRookIdx%8
+		if !sameRank && !sameFile {
+			continue // it's just an intersection, not a pin
+		}
+
+		allPinnedPieces |= pinnedPiece        // store the pinned piece location
+		if pinnedPiece&ourPieces.pawns != 0 { // it's a pawn; we might be able to push it
+			if sameFile { // push the pawn
+				pawnPushesSingle, pawnPushesDouble := b.pawnPushBitboards()
+				pawnTargets := (pawnPushesSingle | pawnPushesDouble) & onlyFile[pinnedPieceIdx%8]
+				genMovesFromTargets(moveList, Square(pinnedPieceIdx), pawnTargets)
+			}
+			continue
+		}
+		// If it's not a rook or queen, it can't move
+		if pinnedPiece&ourPieces.rooks == 0 && pinnedPiece&ourPieces.queens == 0 {
+			continue
+		}
+		// all ortho moves, if it was not pinned
+		pinnedPieceAllMoves := calculateRookMoveBitboard(pinnedPieceIdx, allPieces) & (^(ourPieces.all))
+		// actually available moves
+		pinnedTargets := pinnedPieceAllMoves & (rookTargets | kingOrthoTargets | (uint64(1) << currRookIdx))
+		genMovesFromTargets(moveList, Square(pinnedPieceIdx), pinnedTargets)
+	}
+
+	// TODO diag pins
+
+	return allPinnedPieces
+}
 
 // Generate moves involving advancing pawns.
 func (b *Board) pawnPushes(moveList *[]Move) {
@@ -145,8 +202,7 @@ func (b *Board) pawnCaptureBitboards() (east uint64, west uint64) {
 
 // Generate all knight moves.
 func (b *Board) knightMoves(moveList *[]Move) {
-	var ourKnights uint64
-	var noFriendlyPieces uint64
+	var ourKnights, noFriendlyPieces uint64
 	if b.wtomove {
 		ourKnights = b.white.knights
 		noFriendlyPieces = (^b.white.all)
@@ -165,22 +221,21 @@ func (b *Board) knightMoves(moveList *[]Move) {
 // Generate all available king moves.
 // First, if castling is possible, verifies the checking prohibitions on castling.
 // Then, outputs castling moves (if any), and king moves.
-// Not thread-safe, since the king is removed from the board to compute 
+// Not thread-safe, since the king is removed from the board to compute
 // king-danger squares.
 func (b *Board) kingMoves(moveList *[]Move) {
 	var ourKingLocation uint8
 	var noFriendlyPieces uint64
-	var canCastleQueenside bool
-	var canCastleKingside bool
+	var canCastleQueenside, canCastleKingside bool
 	var ptrToOurBitboards *bitboards
-	allPieces := b.white.all & b.black.all
+	allPieces := b.white.all | b.black.all
 	if b.wtomove {
 		ourKingLocation = uint8(bits.TrailingZeros64(b.white.kings))
 		ptrToOurBitboards = &(b.white)
 		noFriendlyPieces = ^(b.white.all)
 		// To castle, we must have rights and a clear path
-		kingsideClear := allPieces&(1<<5)&(1<<6) == 0
-		queensideClear := allPieces&(1<<3)&(1<<2)&(1<<1) == 0
+		kingsideClear := allPieces&((1<<5)|(1<<6)) == 0
+		queensideClear := allPieces&((1<<3)|(1<<2)|(1<<1)) == 0
 		canCastleQueenside = b.whiteCanCastleQueenside() &&
 			queensideClear && !b.anyUnderDirectAttack(true, 0, 1, 2, 3, 4)
 		canCastleKingside = b.whiteCanCastleKingside() &&
@@ -189,8 +244,8 @@ func (b *Board) kingMoves(moveList *[]Move) {
 		ourKingLocation = uint8(bits.TrailingZeros64(b.black.kings))
 		ptrToOurBitboards = &(b.black)
 		noFriendlyPieces = ^(b.black.all)
-		kingsideClear := allPieces&(1<<61)&(1<<62) == 0
-		queensideClear := allPieces&(1<<57)&(1<<58)&(1<<59) == 0
+		kingsideClear := allPieces&((1<<61)|(1<<62)) == 0
+		queensideClear := allPieces&((1<<57)|(1<<58)|(1<<59)) == 0
 		canCastleQueenside = b.blackCanCastleQueenside() &&
 			queensideClear && !b.anyUnderDirectAttack(false, 56, 57, 58, 59, 60)
 		canCastleKingside = b.blackCanCastleKingside() &&
@@ -232,8 +287,7 @@ func (b *Board) kingMoves(moveList *[]Move) {
 
 // Generate all rook moves using magic bitboards.
 func (b *Board) rookMoves(moveList *[]Move) {
-	var ourRooks uint64
-	var friendlyPieces uint64
+	var ourRooks, friendlyPieces uint64
 	if b.wtomove {
 		ourRooks = b.white.rooks
 		friendlyPieces = b.white.all
@@ -243,19 +297,16 @@ func (b *Board) rookMoves(moveList *[]Move) {
 	}
 	allPieces := b.white.all | b.black.all
 	for ourRooks != 0 {
-		currRook := bits.TrailingZeros64(ourRooks)
+		currRook := uint8(bits.TrailingZeros64(ourRooks))
 		ourRooks &= ourRooks - 1
-		blockers := magicRookBlockerMasks[currRook] & allPieces
-		dbindex := (blockers * magicNumberRook[currRook]) >> magicRookShifts[currRook]
-		targets := magicMovesRook[currRook][dbindex] & (^friendlyPieces)
+		targets := calculateRookMoveBitboard(currRook, allPieces) & (^friendlyPieces)
 		genMovesFromTargets(moveList, Square(currRook), targets)
 	}
 }
 
 // Generate all bishop moves using magic bitboards.
 func (b *Board) bishopMoves(moveList *[]Move) {
-	var ourBishops uint64
-	var friendlyPieces uint64
+	var ourBishops, friendlyPieces uint64
 	if b.wtomove {
 		ourBishops = b.white.bishops
 		friendlyPieces = b.white.all
@@ -265,19 +316,16 @@ func (b *Board) bishopMoves(moveList *[]Move) {
 	}
 	allPieces := b.white.all | b.black.all
 	for ourBishops != 0 {
-		currBishop := bits.TrailingZeros64(ourBishops)
+		currBishop := uint8(bits.TrailingZeros64(ourBishops))
 		ourBishops &= ourBishops - 1
-		blockers := magicBishopBlockerMasks[currBishop] & allPieces
-		dbindex := (blockers * magicNumberBishop[currBishop]) >> magicBishopShifts[currBishop]
-		targets := magicMovesBishop[currBishop][dbindex] & (^friendlyPieces)
+		targets := calculateBishopMoveBitboard(currBishop, allPieces) & (^friendlyPieces)
 		genMovesFromTargets(moveList, Square(currBishop), targets)
 	}
 }
 
 // Generate all queen moves using magic bitboards.
 func (b *Board) queenMoves(moveList *[]Move) {
-	var ourQueens uint64
-	var friendlyPieces uint64
+	var ourQueens, friendlyPieces uint64
 	if b.wtomove {
 		ourQueens = b.white.queens
 		friendlyPieces = b.white.all
@@ -287,17 +335,13 @@ func (b *Board) queenMoves(moveList *[]Move) {
 	}
 	allPieces := b.white.all | b.black.all
 	for ourQueens != 0 {
-		currQueen := bits.TrailingZeros64(ourQueens)
+		currQueen := uint8(bits.TrailingZeros64(ourQueens))
 		ourQueens &= ourQueens - 1
 		// bishop motion
-		diag_blockers := magicBishopBlockerMasks[currQueen] & allPieces
-		diag_dbindex := (diag_blockers * magicNumberBishop[currQueen]) >> magicBishopShifts[currQueen]
-		diag_targets := magicMovesBishop[currQueen][diag_dbindex] & (^friendlyPieces)
+		diag_targets := calculateBishopMoveBitboard(currQueen, allPieces) & (^friendlyPieces)
 		genMovesFromTargets(moveList, Square(currQueen), diag_targets)
 		// rook motion
-		ortho_blockers := magicRookBlockerMasks[currQueen] & allPieces
-		ortho_dbindex := (ortho_blockers * magicNumberRook[currQueen]) >> magicRookShifts[currQueen]
-		ortho_targets := magicMovesRook[currQueen][ortho_dbindex] & (^friendlyPieces)
+		ortho_targets := calculateRookMoveBitboard(currQueen, allPieces) & (^friendlyPieces)
 		genMovesFromTargets(moveList, Square(currQueen), ortho_targets)
 	}
 }
@@ -378,4 +422,24 @@ func (b *Board) underDirectAttack(byBlack bool, origin uint8) bool {
 		return true
 	}
 	return false
+}
+
+// Calculates the attack bitboard for a rook. This might include targeted squares
+// that are actually friendly pieces, so the proper usage is:
+// rookTargets := calculateRookMoveBitboard(myRookLoc, allPieces) & (^myPieces)
+func calculateRookMoveBitboard(currRook uint8, allPieces uint64) uint64 {
+	blockers := magicRookBlockerMasks[currRook] & allPieces
+	dbindex := (blockers * magicNumberRook[currRook]) >> magicRookShifts[currRook]
+	targets := magicMovesRook[currRook][dbindex]
+	return targets
+}
+
+// Calculates the attack bitboard for a bishop. This might include targeted squares
+// that are actually friendly pieces, so the proper usage is:
+// bishopTargets := calculateBishopMoveBitboard(myBishopLoc, allPieces) & (^myPieces)
+func calculateBishopMoveBitboard(currBishop uint8, allPieces uint64) uint64 {
+	blockers := magicBishopBlockerMasks[currBishop] & allPieces
+	dbindex := (blockers * magicNumberBishop[currBishop]) >> magicBishopShifts[currBishop]
+	targets := magicMovesBishop[currBishop][dbindex]
+	return targets
 }

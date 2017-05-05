@@ -156,6 +156,11 @@ func bishopMovesFromBlockers(origin Square, blockers uint64) uint64 {
 	return moves
 }
 
+// Only activate one file, A-H (A=0, H=7)
+var onlyFile = [8]uint64{
+	0x0101010101010101, 0x0202020202020202, 0x0404040404040404, 0x0808080808080808,
+	0x1010101010101010, 0x2020202020202020, 0x4040404040404040, 0x8080808080808080}
+
 // Masks for attacks
 // In order: knight on A1, B1, C1, ... F8, G8, H8
 var knightMasks = [64]uint64{

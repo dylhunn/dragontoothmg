@@ -66,7 +66,6 @@ func (b *Board) generatePinnedMoves(moveList *[]Move) uint64 {
 		if !sameRank && !sameFile {
 			continue // it's just an intersection, not a pin
 		}
-
 		allPinnedPieces |= pinnedPiece        // store the pinned piece location
 		if pinnedPiece&ourPieces.pawns != 0 { // it's a pawn; we might be able to push it
 			if sameFile { // push the pawn
@@ -101,7 +100,37 @@ func (b *Board) generatePinnedMoves(moveList *[]Move) uint64 {
 		if pinnedPiece == 0 {                          // there is no pin
 			continue
 		}
+		pinnedPieceIdx := uint8(bits.TrailingZeros64(pinnedPiece))
+		bishopToPinnedSlope := (float32(pinnedPieceIdx)/8 - float32(currBishopIdx)/8) /
+			(float32(pinnedPieceIdx%8) - float32(currBishopIdx%8))
+		bishopToKingSlope := (float32(ourKingIdx)/8 - float32(currBishopIdx)/8) /
+			(float32(ourKingIdx%8) - float32(currBishopIdx%8))
+		if bishopToPinnedSlope != bishopToKingSlope { // just an intersection, not a pin
+			continue
+		}
 
+		//fmt.Println(pinnedPieceIdx/8, (currBishopIdx/8)+1)
+
+		allPinnedPieces |= pinnedPiece        // store pinned piece
+		if pinnedPiece&ourPieces.pawns != 0 { // it's a pawn; we might be able to capture with it
+			if (b.wtomove && (pinnedPieceIdx/8)+1 == currBishopIdx/8) ||
+				(!b.wtomove && pinnedPieceIdx/8 == (currBishopIdx/8)+1) {
+
+				var move Move
+				move.Setfrom(Square(pinnedPieceIdx)).Setto(Square(currBishopIdx))
+				*moveList = append(*moveList, move)
+			}
+			continue
+		}
+		// If it's not a bishop or queen, it can't move
+		if pinnedPiece&ourPieces.bishops == 0 && pinnedPiece&ourPieces.queens == 0 {
+			continue
+		}
+		// all diag moves, as if it was not pinned
+		pinnedPieceAllMoves := calculateBishopMoveBitboard(pinnedPieceIdx, allPieces) & (^(ourPieces.all))
+		// actually available moves
+		pinnedTargets := pinnedPieceAllMoves & (bishopTargets | kingDiagTargets | (uint64(1) << currBishopIdx))
+		genMovesFromTargets(moveList, Square(pinnedPieceIdx), pinnedTargets)
 	}
 
 	return allPinnedPieces
@@ -251,20 +280,22 @@ func (b *Board) kingMoves(moveList *[]Move) {
 		// To castle, we must have rights and a clear path
 		kingsideClear := allPieces&((1<<5)|(1<<6)) == 0
 		queensideClear := allPieces&((1<<3)|(1<<2)|(1<<1)) == 0
+		// skip the king square, since this won't be called while in check
 		canCastleQueenside = b.whiteCanCastleQueenside() &&
-			queensideClear && !b.anyUnderDirectAttack(true, 0, 1, 2, 3, 4)
+			queensideClear && !b.anyUnderDirectAttack(true, 0, 1, 2, 3)
 		canCastleKingside = b.whiteCanCastleKingside() &&
-			kingsideClear && !b.anyUnderDirectAttack(true, 4, 5, 6, 7)
+			kingsideClear && !b.anyUnderDirectAttack(true, 5, 6, 7)
 	} else {
 		ourKingLocation = uint8(bits.TrailingZeros64(b.black.kings))
 		ptrToOurBitboards = &(b.black)
 		noFriendlyPieces = ^(b.black.all)
 		kingsideClear := allPieces&((1<<61)|(1<<62)) == 0
 		queensideClear := allPieces&((1<<57)|(1<<58)|(1<<59)) == 0
+		// skip the king square, since this won't be called while in check
 		canCastleQueenside = b.blackCanCastleQueenside() &&
-			queensideClear && !b.anyUnderDirectAttack(false, 56, 57, 58, 59, 60)
+			queensideClear && !b.anyUnderDirectAttack(false, 56, 57, 58, 59)
 		canCastleKingside = b.blackCanCastleKingside() &&
-			kingsideClear && !b.anyUnderDirectAttack(false, 60, 61, 62, 63)
+			kingsideClear && !b.anyUnderDirectAttack(false, 61, 62, 63)
 	}
 	if canCastleKingside {
 		var move Move

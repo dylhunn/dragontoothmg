@@ -185,7 +185,7 @@ func TestKingPositions(t *testing.T) {
 		"1Q2rk2/2p2p2/1n4b1/N7/2B1Pp1q/2B4P/1QPP1P2/4K2R w K e3 4 30": 4,
 		"r3k2r/7B/8/8/3q4/8/P6P/R3K2R w KQkq - 0 0":                   2,
 		"r3k2r/7B/8/8/3q4/8/P6P/R3K2R b KQkq - 0 0":                   6,
-		"8/1pk5/8/8/7b/2R5/8/4K2R w K - 0 0":                          4,
+		"8/1pk5/8/8/8/2R4b/8/4K2R w K -":                              4,
 		"8/1pk5/8/8/7b/2R5/8/4K2R b K - 0 0":                          5,
 		"4k3/8/8/8/8/8/8/4K2R w K - 0 0":                              6, // white short castle
 		"4k3/8/8/8/8/8/8/4K1NR w K - 0 0":                             5, // short castle blocked
@@ -376,12 +376,20 @@ func TestDiagPins(t *testing.T) {
 		"4k3/3p4/2B1p3/8/1q6/4R3/3P4/4K3 b - - 0 0": 2,
 		"4k3/8/8/8/1q6/2Q5/8/4K3 w - - 0 0":         2, // normal queen pin
 		"4k3/8/4r3/4Q3/1q6/2Q5/8/4K3 w - - 0 0":     6,
+		"4k3/8/2p5/8/B7/6q1/5N2/4K3 w - - 0 0":      0,
+		"4k3/8/2p5/8/B7/6q1/5N2/4K3 b - - 0 0":      0,
+		"4k3/8/6p1/3b3Q/2P5/1K6/8/8 w - - 0 0":      1,
+		"4k3/8/6p1/3b3Q/2P5/1K6/8/8 b - - 0 0":      1,
 	}
 	pinLocs := map[string]uint8{
 		"4k3/3p4/2B1p3/8/1q6/4R3/3P4/4K3 w - - 0 0": AlgebraicToIndex("d2"), // diagonal pawns
-		"4k3/3p4/2B1p3/8/1q6/4R3/3P4/4K3 b - - 0 0": AlgebraicToIndex("d7"),
+		"4k3/3p4/2B1p3/8/1q6/4R3/3P4/4K3 b - - 0 0": AlgebraicToIndex("e6"),
 		"4k3/8/8/8/1q6/2Q5/8/4K3 w - - 0 0":         AlgebraicToIndex("c3"),
 		"4k3/8/4r3/4Q3/1q6/2Q5/8/4K3 w - - 0 0":     AlgebraicToIndex("c3"), // TODO: only checks one of two pins
+		"4k3/8/2p5/8/B7/6q1/5N2/4K3 w - - 0 0":      AlgebraicToIndex("f2"),
+		"4k3/8/2p5/8/B7/6q1/5N2/4K3 b - - 0 0":      AlgebraicToIndex("c6"),
+		"4k3/8/6p1/3b3Q/2P5/1K6/8/8 w - - 0 0":      AlgebraicToIndex("c4"),
+		"4k3/8/6p1/3b3Q/2P5/1K6/8/8 b - - 0 0":      AlgebraicToIndex("g6"),
 	}
 	for k, v := range positions {
 		moves := make([]Move, 0, 45)
@@ -389,14 +397,15 @@ func TestDiagPins(t *testing.T) {
 		result := b.generatePinnedMoves(&moves)
 		if len(moves) != v {
 			t.Error("Legal moves for diagonal pins: wrong length. Expected", v, "but got", len(moves), "for position", b.ToFen())
-			//printMoves(moves)
 		}
 		if pinLocs[k] == 64 {
 			if result != 0 {
 				t.Error("Found a false pin")
 			}
 		} else if pinLocs[k] != uint8(bits.TrailingZeros64(result)) {
-			t.Error("Wrong pinned location")
+			t.Error("Wrong pinned location for ", b.ToFen(), ":",
+				IndexToAlgebraic(Square(bits.TrailingZeros64(result))), 
+				"not", IndexToAlgebraic(Square(pinLocs[k])))
 		}
 	}
 }

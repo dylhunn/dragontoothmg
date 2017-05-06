@@ -306,7 +306,7 @@ func TestUnderDirectAttack(t *testing.T) {
 func testBreakCheck(t *testing.T) {
 	positions := map[string]int{
 		"k1N5/3RrQ2/8/2B4R/8/2N5/8/4K3 w - - 0 0": 13, // Non-pawn check-breaks and captures
-		"8/8/1p2p3/R6k/8/8/8/K7 b - - - -":        3,  // breaks and captures with a pawn
+		"8/8/1p2p3/R6k/8/8/8/K7 b - - 0 0":        3,  // breaks and captures with a pawn
 		"3k4/2P4r/1P6/8/8/8/8/K7 b - - 0 0":       5,  // break the check of a pawn
 		"3k4/2P1P3/1P6/8/8/8/8/K7 b - - 0 0":      4,  // double check with pawns: must move king
 		"3k4/7r/1P6/8/7B/8/3R4/K7 b - - 0 0":      4,  // double check: must move king
@@ -370,6 +370,37 @@ func testPinnedQueen(t *testing.T) {
 	}
 }
 
+func TestDiagPins(t *testing.T) {
+	positions := map[string]int{
+		"4k3/3p4/2B1p3/8/1q6/4R3/3P4/4K3 w - - 0 0": 0, // diagonal pawns
+		"4k3/3p4/2B1p3/8/1q6/4R3/3P4/4K3 b - - 0 0": 2,
+		"4k3/8/8/8/1q6/2Q5/8/4K3 w - - 0 0":         2, // normal queen pin
+		"4k3/8/4r3/4Q3/1q6/2Q5/8/4K3 w - - 0 0":     6,
+	}
+	pinLocs := map[string]uint8{
+		"4k3/3p4/2B1p3/8/1q6/4R3/3P4/4K3 w - - 0 0": AlgebraicToIndex("d2"), // diagonal pawns
+		"4k3/3p4/2B1p3/8/1q6/4R3/3P4/4K3 b - - 0 0": AlgebraicToIndex("d7"),
+		"4k3/8/8/8/1q6/2Q5/8/4K3 w - - 0 0":         AlgebraicToIndex("c3"),
+		"4k3/8/4r3/4Q3/1q6/2Q5/8/4K3 w - - 0 0":     AlgebraicToIndex("c3"), // TODO: only checks one of two pins
+	}
+	for k, v := range positions {
+		moves := make([]Move, 0, 45)
+		b := ParseFen(k)
+		result := b.generatePinnedMoves(&moves)
+		if len(moves) != v {
+			t.Error("Legal moves for diagonal pins: wrong length. Expected", v, "but got", len(moves), "for position", b.ToFen())
+			//printMoves(moves)
+		}
+		if pinLocs[k] == 64 {
+			if result != 0 {
+				t.Error("Found a false pin")
+			}
+		} else if pinLocs[k] != uint8(bits.TrailingZeros64(result)) {
+			t.Error("Wrong pinned location")
+		}
+	}
+}
+
 func TestOrthoPins(t *testing.T) {
 	positions := map[string]int{
 		"4k3/8/4r3/4Q3/1q6/2Q5/8/4K3 b - - 0 0": 2,
@@ -396,7 +427,7 @@ func TestOrthoPins(t *testing.T) {
 		b := ParseFen(k)
 		result := b.generatePinnedMoves(&moves)
 		if len(moves) != v {
-			t.Error("Legal moves for pinned bishops: wrong length. Expected", v, "but got", len(moves), "for position", b.ToFen())
+			t.Error("Legal moves for orthogonal pins: wrong length. Expected", v, "but got", len(moves), "for position", b.ToFen())
 			printMoves(moves)
 		}
 		if pinLocs[k] == 64 {
@@ -405,21 +436,6 @@ func TestOrthoPins(t *testing.T) {
 			}
 		} else if pinLocs[k] != uint8(bits.TrailingZeros64(result)) {
 			t.Error("Wrong pinned location")
-		}
-	}
-}
-
-func testPinnedPawns(t *testing.T) {
-	positions := map[string]int{
-		"4k3/3p4/2B1p3/8/1q6/4R3/3P4/4K3 w - - 0 0": 0, // diagonal
-		"4k3/3p4/2B1p3/8/1q6/4R3/3P4/4K3 b - - 0 0": 2,
-	}
-	for k, v := range positions {
-		moves := make([]Move, 0, 45)
-		b := ParseFen(k)
-		b.generatePinnedMoves(&moves)
-		if len(moves) != v {
-			t.Error("Legal moves for pinned pawns: wrong length. Expected", v, "but got", len(moves), "for position", b.ToFen())
 		}
 	}
 }

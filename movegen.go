@@ -80,7 +80,7 @@ func (b *Board) generatePinnedMoves(moveList *[]Move) uint64 {
 		if pinnedPiece&ourPieces.rooks == 0 && pinnedPiece&ourPieces.queens == 0 {
 			continue
 		}
-		// all ortho moves, if it was not pinned
+		// all ortho moves, as if it was not pinned
 		pinnedPieceAllMoves := calculateRookMoveBitboard(pinnedPieceIdx, allPieces) & (^(ourPieces.all))
 		// actually available moves
 		pinnedTargets := pinnedPieceAllMoves & (rookTargets | kingOrthoTargets | (uint64(1) << currRookIdx))
@@ -88,6 +88,21 @@ func (b *Board) generatePinnedMoves(moveList *[]Move) uint64 {
 	}
 
 	// TODO diag pins
+	// Calculate king moves as if it was a bishop.
+	// "king targets" includes our own friendly pieces, for the purpose of identifying pins.
+	kingDiagTargets := calculateBishopMoveBitboard(ourKingIdx, allPieces)
+
+	oppBishops := oppPieces.bishops | oppPieces.queens
+	for oppBishops != 0 {
+		currBishopIdx := uint8(bits.TrailingZeros64(oppBishops))
+		oppBishops &= oppBishops - 1
+		bishopTargets := calculateBishopMoveBitboard(currBishopIdx, allPieces) & (^(oppPieces.all))
+		pinnedPiece := bishopTargets & kingDiagTargets // A piece is pinned iff it falls along both attack rays.
+		if pinnedPiece == 0 {                          // there is no pin
+			continue
+		}
+
+	}
 
 	return allPinnedPieces
 }

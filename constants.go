@@ -156,6 +156,8 @@ func bishopMovesFromBlockers(origin Square, blockers uint64) uint64 {
 	return moves
 }
 
+const kDefaultMoveListLength int = 45
+
 // Bitboard where every bit is active
 var everything uint64 = ^(uint64(0))
 

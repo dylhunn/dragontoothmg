@@ -208,7 +208,7 @@ func testBreakCheck(t *testing.T) {
 		"3k4/2P1P3/1P6/8/8/8/8/K7 b - - 0 0":      4,  // double check with pawns: must move king
 		"3k4/7r/1P6/8/7B/8/3R4/K7 b - - 0 0":      4,  // double check: must move king
 		"8/8/8/1k6/2Pp4/8/8/4K3 b - c3 0 0":       9,  // en passant check evasion
-		"8/8/8/1k6/3Pp3/8/8/K4Q2 b - d3 0 0":      6,  //en passant check evasion
+		"8/8/8/1k6/3Pp3/8/8/K4Q2 b - d3 0 0":      6,  // en passant check evasion
 	}
 	for k, v := range positions {
 		b := ParseFen(k)

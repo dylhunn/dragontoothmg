@@ -13,9 +13,29 @@ import (
 
 // The main API entrypoint. Generates all legal moves for a given board.
 func (b *Board) GenerateLegalMoves() []Move {
-	moves := make([]Move, 0, 45)
+	moves := make([]Move, 0, kDefaultMoveListLength)
 	// First, see if we are currently in check. If we are, invoke a special check-
 	// evasion move generator.
+	var kingLocation uint8
+	var ourPiecesPtr *bitboards
+	if b.wtomove { // assumes only one king
+		kingLocation = uint8(bits.TrailingZeros64(b.white.kings))
+		ourPiecesPtr = &(b.white)
+
+	} else {
+		kingLocation = uint8(bits.TrailingZeros64(b.black.kings))
+		ourPiecesPtr = &(b.black)
+	}
+	kingAttackers := b.countAttacks(b.wtomove, kingLocation, 2)
+	if kingAttackers >= 1 {
+
+		if kingAttackers == 1 { // if only one attack, we can evade it in several ways
+			// TODO
+		}
+
+		b.kingPushes(&moves, ourPiecesPtr)
+		return moves
+	}
 
 	// Then, calculate all the absolutely pinned pieces, and compute their moves.
 	pinnedPieces := b.generatePinnedMoves(&moves)
@@ -262,51 +282,10 @@ func (b *Board) knightMoves(moveList *[]Move, nonpinned uint64) {
 	}
 }
 
-// Generate all available king moves.
-// First, if castling is possible, verifies the checking prohibitions on castling.
-// Then, outputs castling moves (if any), and king moves.
-// Not thread-safe, since the king is removed from the board to compute
-// king-danger squares.
-func (b *Board) kingMoves(moveList *[]Move) {
-	var ourKingLocation uint8
-	var noFriendlyPieces uint64
-	var canCastleQueenside, canCastleKingside bool
-	var ptrToOurBitboards *bitboards
-	allPieces := b.white.all | b.black.all
-	if b.wtomove {
-		ourKingLocation = uint8(bits.TrailingZeros64(b.white.kings))
-		ptrToOurBitboards = &(b.white)
-		noFriendlyPieces = ^(b.white.all)
-		// To castle, we must have rights and a clear path
-		kingsideClear := allPieces&((1<<5)|(1<<6)) == 0
-		queensideClear := allPieces&((1<<3)|(1<<2)|(1<<1)) == 0
-		// skip the king square, since this won't be called while in check
-		canCastleQueenside = b.whiteCanCastleQueenside() &&
-			queensideClear && !b.anyUnderDirectAttack(true, 0, 1, 2, 3)
-		canCastleKingside = b.whiteCanCastleKingside() &&
-			kingsideClear && !b.anyUnderDirectAttack(true, 5, 6, 7)
-	} else {
-		ourKingLocation = uint8(bits.TrailingZeros64(b.black.kings))
-		ptrToOurBitboards = &(b.black)
-		noFriendlyPieces = ^(b.black.all)
-		kingsideClear := allPieces&((1<<61)|(1<<62)) == 0
-		queensideClear := allPieces&((1<<57)|(1<<58)|(1<<59)) == 0
-		// skip the king square, since this won't be called while in check
-		canCastleQueenside = b.blackCanCastleQueenside() &&
-			queensideClear && !b.anyUnderDirectAttack(false, 56, 57, 58, 59)
-		canCastleKingside = b.blackCanCastleKingside() &&
-			kingsideClear && !b.anyUnderDirectAttack(false, 61, 62, 63)
-	}
-	if canCastleKingside {
-		var move Move
-		move.Setfrom(Square(ourKingLocation)).Setto(Square(ourKingLocation + 2))
-		*moveList = append(*moveList, move)
-	}
-	if canCastleQueenside {
-		var move Move
-		move.Setfrom(Square(ourKingLocation)).Setto(Square(ourKingLocation - 2))
-		*moveList = append(*moveList, move)
-	}
+// Computes king moves without castling.
+func (b *Board) kingPushes(moveList *[]Move, ptrToOurBitboards *bitboards) {
+	ourKingLocation := uint8(bits.TrailingZeros64(ptrToOurBitboards.kings))
+	noFriendlyPieces := ^(ptrToOurBitboards.all)
 
 	// TODO(dylhunn): Modifying the board is NOT thread-safe.
 	// We only do this to avoid the king danger problem, aka moving away from a
@@ -329,6 +308,54 @@ func (b *Board) kingMoves(moveList *[]Move) {
 
 	ptrToOurBitboards.kings = oldKings
 	ptrToOurBitboards.all |= (1 << ourKingLocation)
+}
+
+// Generate all available king moves.
+// First, if castling is possible, verifies the checking prohibitions on castling.
+// Then, outputs castling moves (if any), and king moves.
+// Not thread-safe, since the king is removed from the board to compute
+// king-danger squares.
+func (b *Board) kingMoves(moveList *[]Move) {
+	// castling
+	var ourKingLocation uint8
+	var canCastleQueenside, canCastleKingside bool
+	var ptrToOurBitboards *bitboards
+	allPieces := b.white.all | b.black.all
+	if b.wtomove {
+		ourKingLocation = uint8(bits.TrailingZeros64(b.white.kings))
+		ptrToOurBitboards = &(b.white)
+		// To castle, we must have rights and a clear path
+		kingsideClear := allPieces&((1<<5)|(1<<6)) == 0
+		queensideClear := allPieces&((1<<3)|(1<<2)|(1<<1)) == 0
+		// skip the king square, since this won't be called while in check
+		canCastleQueenside = b.whiteCanCastleQueenside() &&
+			queensideClear && !b.anyUnderDirectAttack(true, 0, 1, 2, 3)
+		canCastleKingside = b.whiteCanCastleKingside() &&
+			kingsideClear && !b.anyUnderDirectAttack(true, 5, 6, 7)
+	} else {
+		ourKingLocation = uint8(bits.TrailingZeros64(b.black.kings))
+		ptrToOurBitboards = &(b.black)
+		kingsideClear := allPieces&((1<<61)|(1<<62)) == 0
+		queensideClear := allPieces&((1<<57)|(1<<58)|(1<<59)) == 0
+		// skip the king square, since this won't be called while in check
+		canCastleQueenside = b.blackCanCastleQueenside() &&
+			queensideClear && !b.anyUnderDirectAttack(false, 56, 57, 58, 59)
+		canCastleKingside = b.blackCanCastleKingside() &&
+			kingsideClear && !b.anyUnderDirectAttack(false, 61, 62, 63)
+	}
+	if canCastleKingside {
+		var move Move
+		move.Setfrom(Square(ourKingLocation)).Setto(Square(ourKingLocation + 2))
+		*moveList = append(*moveList, move)
+	}
+	if canCastleQueenside {
+		var move Move
+		move.Setfrom(Square(ourKingLocation)).Setto(Square(ourKingLocation - 2))
+		*moveList = append(*moveList, move)
+	}
+
+	// non-castling
+	b.kingPushes(moveList, ptrToOurBitboards)
 }
 
 // Generate all rook moves using magic bitboards.
@@ -414,8 +441,15 @@ func (b *Board) anyUnderDirectAttack(byBlack bool, squares ...uint8) bool {
 	return false
 }
 
-// Compute whether an individual square is under direct attack. Potentially expensive.
 func (b *Board) underDirectAttack(byBlack bool, origin uint8) bool {
+	return b.countAttacks(byBlack, origin, 1) >= 1
+}
+
+// Compute whether an individual square is under direct attack. Potentially expensive.
+// Can be asked to abort early, when a certain number of attacks are found.
+// The found number might exceed the abortion threshold, since attacks are grouped.
+func (b *Board) countAttacks(byBlack bool, origin uint8, abortEarly int) int {
+	numAttacks := 0
 	allPieces := b.white.all | b.black.all
 	var opponentPieces *bitboards
 	if byBlack {
@@ -425,30 +459,34 @@ func (b *Board) underDirectAttack(byBlack bool, origin uint8) bool {
 	}
 	// find attacking knights
 	knight_attackers := knightMasks[origin] & opponentPieces.knights
-	if knight_attackers != 0 {
-		return true
+	numAttacks += bits.OnesCount64(knight_attackers)
+	if numAttacks >= abortEarly {
+		return numAttacks
 	}
 	// find attacking bishops and queens
 	diag_candidates := magicBishopBlockerMasks[origin] & allPieces
 	diag_dbindex := (diag_candidates * magicNumberBishop[origin]) >> magicBishopShifts[origin]
 	diag_potential_attackers := magicMovesBishop[origin][diag_dbindex] & opponentPieces.all
 	diag_attackers := diag_potential_attackers & (opponentPieces.bishops | opponentPieces.queens)
-	if diag_attackers != 0 {
-		return true
+	numAttacks += bits.OnesCount64(diag_attackers)
+	if numAttacks >= abortEarly {
+		return numAttacks
 	}
 	// find attacking rooks and queens
 	ortho_candidates := magicRookBlockerMasks[origin] & allPieces
 	ortho_dbindex := (ortho_candidates * magicNumberRook[origin]) >> magicRookShifts[origin]
 	ortho_potential_attackers := magicMovesRook[origin][ortho_dbindex] & opponentPieces.all
 	ortho_attackers := ortho_potential_attackers & (opponentPieces.rooks | opponentPieces.queens)
-	if ortho_attackers != 0 {
-		return true
+	numAttacks += bits.OnesCount64(ortho_attackers)
+	if numAttacks >= abortEarly {
+		return numAttacks
 	}
 	// find attacking kings
 	// TODO(dylhunn): What if the opponent king can't actually move to the origin square?
 	king_attackers := kingMasks[origin] & opponentPieces.kings
-	if king_attackers != 0 {
-		return true
+	numAttacks += bits.OnesCount64(king_attackers)
+	if numAttacks >= abortEarly {
+		return numAttacks
 	}
 	// find attacking pawns
 	var pawn_attackers uint64 = 0
@@ -464,10 +502,11 @@ func (b *Board) underDirectAttack(byBlack bool, origin uint8) bool {
 		}
 	}
 	pawn_attackers &= opponentPieces.pawns
-	if pawn_attackers != 0 {
-		return true
+	numAttacks += bits.OnesCount64(pawn_attackers)
+	if numAttacks >= abortEarly {
+		return numAttacks
 	}
-	return false
+	return numAttacks
 }
 
 // Calculates the attack bitboard for a rook. This might include targeted squares

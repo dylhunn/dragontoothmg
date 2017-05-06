@@ -156,6 +156,9 @@ func bishopMovesFromBlockers(origin Square, blockers uint64) uint64 {
 	return moves
 }
 
+// Bitboard where every bit is active
+var everything uint64 = ^(uint64(0))
+
 // Only activate one file, A-H (A=0, H=7)
 var onlyFile = [8]uint64{
 	0x0101010101010101, 0x0202020202020202, 0x0404040404040404, 0x0808080808080808,

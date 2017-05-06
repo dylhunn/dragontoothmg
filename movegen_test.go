@@ -5,138 +5,35 @@ import (
 	"testing"
 )
 
-func TestWhitePawnPush(t *testing.T) {
-	var whitePawnsBefore uint64 = 0xFF00 // white on second rank
-	var whitePawnsAfter uint64 = 0xFCFD0000
-	var blackPawns uint64 = 0x1020000 // black on 24 and 17
-	whitepieces := bitboards{pawns: whitePawnsBefore, all: whitePawnsBefore}
-	blackpieces := bitboards{pawns: blackPawns, all: blackPawns}
-	testboard := Board{white: whitepieces, black: blackpieces, wtomove: true}
-	moves := make([]Move, 0, 45)
-	testboard.pawnPushes(&moves)
-	for _, v := range moves {
-		if ((1 << v.To()) & whitePawnsAfter) == 0 {
-			t.Error("Generated move was not expected:", v)
-		}
-		whitePawnsAfter -= 1 << v.To()
-	}
-	if whitePawnsAfter != 0 {
-		t.Error("An expected move was not found to square", bits.TrailingZeros64(whitePawnsAfter))
-	}
-	if len(moves) != 13 {
-		t.Error("Unexpected number of moves")
-	}
-}
-
-func TestPawnPosition0(t *testing.T) {
-	// Board setup:
-	// 56  57  58  59  60  BN  62  63
-	// 48  49  50  51  52  53  WW  55
-	// 40  41  42  43  44  45  46  47
-	// 32  33  BB  WW  36  37  38  39
-	// 24  BB  BB  27  28  29  30  31
-	// 16  WW  18  19  20  21  22  23
-	// 8   9   WW  11  WW  13  14  15
-	// 0   1   2   3   4   5   6   7
-	// white: 0000000001000000000000000000100000000000000000100001010000000000
-	// black pawns: 0000000000000000000000000000010000000110000000000000000000000000
-	var whitePawns uint64 = 0x40000800021400 // white on 10, 12, 17, 35, 54
-	var blackPawns uint64 = 0x406000000      // black on 25, 26, 34
-	var blackKnight uint64 = 1 << 61         // black on 61 (for capture promotion)
-	// en passant target is 42
-	whitepieces := bitboards{pawns: whitePawns, all: whitePawns}
-	blackpieces := bitboards{pawns: blackPawns, knights: blackKnight, all: blackPawns | blackKnight}
-	testboard := Board{white: whitepieces, black: blackpieces, wtomove: true, enpassant: 42}
-
-	moves := make([]Move, 0, 45)
-	testboard.pawnCaptures(&moves)
-	if len(moves) != 6 {
-		t.Error("Pawn capture moves: wrong length. Expected 6, got", len(moves))
-	}
-
-	movesc := make([]Move, 0, 45)
-	testboard.pawnPushes(&movesc)
-	if len(movesc) != 8 {
-		t.Error("Pawn push moves: wrong length. Expected 8, got", len(movesc))
-	}
-
-	testboard.wtomove = false
-	testboard.enpassant = 0
-	moves2 := make([]Move, 0, 45)
-	testboard.pawnCaptures(&moves2)
-	if len(moves2) != 1 {
-		t.Error("Pawn capture moves: wrong length. Expected 1, got", len(moves2))
-	}
-
-	movesc2 := make([]Move, 0, 45)
-	testboard.pawnPushes(&movesc2)
-	if len(movesc2) != 1 {
-		t.Error("Pawn push moves: wrong length. Expected 1, got", len(movesc2))
-	}
-}
-
-func TestPawnPosition1(t *testing.T) {
-	// Board setup:
-	// 56  57  58  59  60  61  62  63
-	// 48  49  50  51  52  53  BB  55
-	// 40  41  42  43  44  45  46  47
-	// 32  33  34  35  BB  37  38  39
-	// 24  25  BB  WW  28  BB  BB  31
-	// 16  17  18  19  20  WW  22  23
-	// BB  WW  WW  11  WW  13  WW  WW
-	// 0   WN  2   3   4   5   6   7
-	// white pawns: 0000000000000000000000000000000000001000001000001101011000000000
-	// black: 0000000001000000000000000001000001100100000000000000000100000000
-	var whitePawns uint64 = 0x820D600
-	var blackPawns uint64 = 0x40001064000100
-	var whiteKnight uint64 = 1 << 1 // white on 1 (for capture promotion)
-	// en passant target is 19
-	whitepieces := bitboards{pawns: whitePawns, knights: whiteKnight, all: whitePawns | whiteKnight}
-	blackpieces := bitboards{pawns: blackPawns, all: blackPawns}
-	testboard := Board{white: whitepieces, black: blackpieces, wtomove: false, enpassant: 19}
-
-	moves := make([]Move, 0, 45)
-	testboard.pawnCaptures(&moves)
-	if len(moves) != 7 {
-		t.Error("Pawn capture moves: wrong length. Expected 7, got", len(moves))
-	}
-
-	movesc := make([]Move, 0, 45)
-	testboard.pawnPushes(&movesc)
-	if len(movesc) != 9 {
-		t.Error("Pawn push moves: wrong length. Expected 9, got", len(movesc))
-	}
-
-	testboard.wtomove = true
-	testboard.enpassant = 0
-	moves2 := make([]Move, 0, 45)
-	testboard.pawnCaptures(&moves2)
-	if len(moves2) != 2 {
-		t.Error("Pawn capture moves: wrong length. Expected 2, got", len(moves2))
-	}
-
-	movesc2 := make([]Move, 0, 45)
-	testboard.pawnPushes(&movesc2)
-	if len(movesc2) != 9 {
-		t.Error("Pawn push moves: wrong length. Expected 9, got", len(movesc2))
-	}
-}
-
-func testPawnCaptures(t *testing.T) {
+func TestPawnPushes(t *testing.T) {
 	positions := map[string]int{
-		"r1bqkb1r/2p2p1p/p2pn3/1p2pPpP/B1P1PP1N/3P4/PP6/RNBQK2R w KQkq g6 0 0": 6, // with double en passant
-		"r1bqkb1r/2p2p1p/p2pn3/1p2pPpP/2P1PP1N/3P4/PP6/RNBQK2R b KQkq - 0 0":   4, // simple
-		"r1bqkb1r/2p2p1p/p2pn3/1p2pPpP/2P1PP1N/3P4/PP6/RNBQK2R w KQkq - 0 0":   4, // simple
-		"r1bqkb1r/2p2p1p/p2pn3/1p2pPpP/B1P1PP1N/3P4/PP6/RNBQK2R b KQkq - 0 0":  4, // many captures, but one puts black in check
-		"r1b1kbnr/pppp1ppp/8/1Kp1pP1q/8/1n6/PPPPP1PP/RNBQ1BNR w KQkq e6 0 0":   3, // en passant is possible
-		"r1b1kbnr/pppp1ppp/8/1K2pP1q/8/1n6/PPPPP1PP/RNBQ1BNR w KQkq e6 0 0":    2, // tricky en passant capture into check
+		"rnbqkbnr/ppp2pp1/3p4/4p3/3N1P2/P1n5/2PPP3/R1BQKBNR w KQkq - 0 0": 5,
+		"rnbqkbnr/ppp2pp1/3p4/4p3/3N1P2/P1n5/2PPP3/R1BQKBNR b KQkq - 0 0": 12,
 	}
 	for k, v := range positions {
 		moves := make([]Move, 0, 45)
 		b := ParseFen(k)
-		b.pawnCaptures(&moves)
+		b.pawnPushes(&moves, everything)
 		if len(moves) != v {
-			t.Error("Pawn captures: wrong length. Expected", v, "but got", len(moves), "\nfor position:", b.ToFen())
+			t.Error("Pawn pushes: wrong length. Expected", v, "but got", 
+				len(moves), "for FEN", b.ToFen())
+		}
+	}
+}
+
+func TestPawnCaptures(t *testing.T) {
+	positions := map[string]int{
+		"rnbqkbnr/ppp2pp1/3p4/4p3/3N1P2/P1n5/2PPP3/R1BQKBNR w KQkq - 0 0": 2,
+		"rnbqkbnr/ppp2pp1/3p4/4p3/3N1P2/P1n5/2PPP3/R1BQKBNR b KQkq - 0 0": 2,
+		"rnbqkbnr/ppp2pp1/3p4/4pP2/3N4/P1n5/2PPP3/R1BQKBNR w KQkq e6 0 0": 2,
+	}
+	for k, v := range positions {
+		moves := make([]Move, 0, 45)
+		b := ParseFen(k)
+		b.pawnCaptures(&moves, everything)
+		if len(moves) != v {
+			t.Error("Pawn captures: wrong length. Expected", v, "but got", 
+				len(moves), "for FEN", b.ToFen())
 		}
 	}
 }
@@ -166,14 +63,14 @@ func TestKnightPosition0(t *testing.T) {
 	testboard := Board{white: whitepieces, black: blackpieces, wtomove: true}
 
 	moves := make([]Move, 0, 45)
-	testboard.knightMoves(&moves)
+	testboard.knightMoves(&moves, everything)
 	if len(moves) != 20 {
 		t.Error("Knight moves: wrong length. Expected 20, got", len(moves))
 	}
 
 	testboard.wtomove = false
 	moves2 := make([]Move, 0, 45)
-	testboard.knightMoves(&moves2)
+	testboard.knightMoves(&moves2, everything)
 	if len(moves2) != 27 {
 		t.Error("Knight moves: wrong length. Expected 27, got", len(moves2))
 	}
@@ -215,7 +112,7 @@ func TestRookPositions(t *testing.T) {
 	for k, v := range positions {
 		moves := make([]Move, 0, 45)
 		b := ParseFen(k)
-		b.rookMoves(&moves)
+		b.rookMoves(&moves, everything)
 		if len(moves) != v {
 			t.Error("Rook moves: wrong length. Expected", v, "but got", len(moves))
 		}
@@ -232,7 +129,7 @@ func TestBishopPositions(t *testing.T) {
 	for k, v := range positions {
 		moves := make([]Move, 0, 45)
 		b := ParseFen(k)
-		b.bishopMoves(&moves)
+		b.bishopMoves(&moves, everything)
 		if len(moves) != v {
 			t.Error("Bishop moves: wrong length. Expected", v, "but got", len(moves))
 		}
@@ -249,7 +146,7 @@ func TestQueenPositions(t *testing.T) {
 	for k, v := range positions {
 		moves := make([]Move, 0, 45)
 		b := ParseFen(k)
-		b.queenMoves(&moves)
+		b.queenMoves(&moves, everything)
 		if len(moves) != v {
 			t.Error("Queen moves: wrong length. Expected", v, "but got", len(moves))
 		}
@@ -324,10 +221,10 @@ func testBreakCheck(t *testing.T) {
 
 // Test that pinned pieces can only move along the pin ray
 
-func testPinnedBishop(t *testing.T) {
+func TestPinnedBishop(t *testing.T) {
 	positions := map[string]int{
 		"4k3/3b4/8/8/Q7/8/8/4K3 b - - 0 0":      3,  // pinned bishop
-		"4k3/3b4/2b5/8/Q7/8/8/4K3 b - - 0 0":    14, // a "double" pin is not actually a pin
+		"4k3/3b4/2b5/8/Q7/8/8/4K3 b - - 0 0":    0, // a "double" pin is not actually a pin
 		"4k3/3b1b2/2Q3Q1/8/8/8/8/4K3 b - - 0 0": 2,  // two close pins
 	}
 	for k, v := range positions {
@@ -340,7 +237,7 @@ func testPinnedBishop(t *testing.T) {
 	}
 }
 
-func testPinnedKnight(t *testing.T) {
+func TestPinnedKnight(t *testing.T) {
 	positions := map[string]int{
 		"4k3/3n1n2/2Q3Q1/8/8/8/8/4K3 b - - 0 0": 0, // two close pins
 		"4k3/8/8/8/1q6/2N5/8/4K3 w - - 0 0":     0, // normal pin
@@ -355,7 +252,7 @@ func testPinnedKnight(t *testing.T) {
 	}
 }
 
-func testPinnedQueen(t *testing.T) {
+func TestPinnedQueen(t *testing.T) {
 	positions := map[string]int{
 		"4k3/8/8/8/1q6/2Q5/8/4K3 w - - 0 0":     2, // normal pin
 		"4k3/8/4r3/4Q3/1q6/2Q5/8/4K3 w - - 0 0": 6,
@@ -404,7 +301,7 @@ func TestDiagPins(t *testing.T) {
 			}
 		} else if pinLocs[k] != uint8(bits.TrailingZeros64(result)) {
 			t.Error("Wrong pinned location for ", b.ToFen(), ":",
-				IndexToAlgebraic(Square(bits.TrailingZeros64(result))), 
+				IndexToAlgebraic(Square(bits.TrailingZeros64(result))),
 				"not", IndexToAlgebraic(Square(pinLocs[k])))
 		}
 	}

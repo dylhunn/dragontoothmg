@@ -8,6 +8,7 @@ package dragontoothmg
 
 import (
 	"math/bits"
+	//"fmt"
 )
 
 // The main API entrypoint. Generates all legal moves for a given board.
@@ -18,20 +19,20 @@ func (b *Board) GenerateLegalMoves() []Move {
 
 	// Then, calculate all the absolutely pinned pieces, and compute their moves.
 	pinnedPieces := b.generatePinnedMoves(&moves)
-	_ = ^pinnedPieces
+	nonpinnedPieces := ^pinnedPieces
 
 	// Finally, compute ordinary moves, ignoring absolutely pinned pieces.
-	b.pawnPushes(&moves)
-	b.pawnCaptures(&moves)
-	b.knightMoves(&moves)
+	b.pawnPushes(&moves, nonpinnedPieces)
+	b.pawnCaptures(&moves, nonpinnedPieces)
+	b.knightMoves(&moves, nonpinnedPieces)
 	b.kingMoves(&moves)
-	b.rookMoves(&moves)
-	b.bishopMoves(&moves)
-	b.queenMoves(&moves)
+	b.rookMoves(&moves, nonpinnedPieces)
+	b.bishopMoves(&moves, nonpinnedPieces)
+	b.queenMoves(&moves, nonpinnedPieces)
 	return moves
 }
 
-// Calcuate the available moves for absolutely pinned pieces (pinned to the king).
+// Calculate the available moves for absolutely pinned pieces (pinned to the king).
 // Return a bitboard of all pieces that are pinned.
 func (b *Board) generatePinnedMoves(moveList *[]Move) uint64 {
 	var ourKingIdx uint8
@@ -47,10 +48,10 @@ func (b *Board) generatePinnedMoves(moveList *[]Move) uint64 {
 		oppPieces = &(b.white)
 	}
 	allPieces := oppPieces.all | ourPieces.all
+
 	// Calculate king moves as if it was a rook.
 	// "king targets" includes our own friendly pieces, for the purpose of identifying pins.
 	kingOrthoTargets := calculateRookMoveBitboard(ourKingIdx, allPieces)
-
 	oppRooks := oppPieces.rooks | oppPieces.queens
 	for oppRooks != 0 { // For each opponent ortho slider
 		currRookIdx := uint8(bits.TrailingZeros64(oppRooks))
@@ -69,7 +70,7 @@ func (b *Board) generatePinnedMoves(moveList *[]Move) uint64 {
 		allPinnedPieces |= pinnedPiece        // store the pinned piece location
 		if pinnedPiece&ourPieces.pawns != 0 { // it's a pawn; we might be able to push it
 			if sameFile { // push the pawn
-				pawnPushesSingle, pawnPushesDouble := b.pawnPushBitboards()
+				pawnPushesSingle, pawnPushesDouble := b.pawnPushBitboards(everything)
 				pawnTargets := (pawnPushesSingle | pawnPushesDouble) & onlyFile[pinnedPieceIdx%8]
 				genMovesFromTargets(moveList, Square(pinnedPieceIdx), pawnTargets)
 			}
@@ -86,11 +87,9 @@ func (b *Board) generatePinnedMoves(moveList *[]Move) uint64 {
 		genMovesFromTargets(moveList, Square(pinnedPieceIdx), pinnedTargets)
 	}
 
-	// TODO diag pins
 	// Calculate king moves as if it was a bishop.
 	// "king targets" includes our own friendly pieces, for the purpose of identifying pins.
 	kingDiagTargets := calculateBishopMoveBitboard(ourKingIdx, allPieces)
-
 	oppBishops := oppPieces.bishops | oppPieces.queens
 	for oppBishops != 0 {
 		currBishopIdx := uint8(bits.TrailingZeros64(oppBishops))
@@ -132,13 +131,12 @@ func (b *Board) generatePinnedMoves(moveList *[]Move) uint64 {
 		pinnedTargets := pinnedPieceAllMoves & (bishopTargets | kingDiagTargets | (uint64(1) << currBishopIdx))
 		genMovesFromTargets(moveList, Square(pinnedPieceIdx), pinnedTargets)
 	}
-
 	return allPinnedPieces
 }
 
 // Generate moves involving advancing pawns.
-func (b *Board) pawnPushes(moveList *[]Move) {
-	targets, doubleTargets := b.pawnPushBitboards()
+func (b *Board) pawnPushes(moveList *[]Move, nonpinned uint64) {
+	targets, doubleTargets := b.pawnPushBitboards(nonpinned)
 	oneRankBack := 8
 	if b.wtomove {
 		oneRankBack = -oneRankBack
@@ -175,14 +173,16 @@ func (b *Board) pawnPushes(moveList *[]Move) {
 }
 
 // A helper function that produces bitboards of valid pawn push locations.
-func (b *Board) pawnPushBitboards() (targets uint64, doubleTargets uint64) {
+func (b *Board) pawnPushBitboards(nonpinned uint64) (targets uint64, doubleTargets uint64) {
 	free := (^b.white.all) & (^b.black.all)
 	if b.wtomove {
-		targets = b.white.pawns << 8 & free
+		movableWhitePawns := b.white.pawns & nonpinned
+		targets = movableWhitePawns << 8 & free
 		fourthFile := uint64(0xFF000000)
 		doubleTargets = targets << 8 & fourthFile & free
 	} else {
-		targets = b.black.pawns >> 8 & free
+		movableBlackPawns := b.black.pawns & nonpinned
+		targets = movableBlackPawns >> 8 & free
 		fifthFile := uint64(0xFF00000000)
 		doubleTargets = targets >> 8 & fifthFile & free
 	}
@@ -190,8 +190,8 @@ func (b *Board) pawnPushBitboards() (targets uint64, doubleTargets uint64) {
 }
 
 // A function that computes available pawn captures.
-func (b *Board) pawnCaptures(moveList *[]Move) {
-	east, west := b.pawnCaptureBitboards()
+func (b *Board) pawnCaptures(moveList *[]Move, nonpinned uint64) {
+	east, west := b.pawnCaptureBitboards(nonpinned)
 	bitboards := [2]uint64{east, west}
 	if !b.wtomove {
 		bitboards[0], bitboards[1] = bitboards[1], bitboards[0]
@@ -223,7 +223,7 @@ func (b *Board) pawnCaptures(moveList *[]Move) {
 }
 
 // A helper than generates bitboards for available pawn captures.
-func (b *Board) pawnCaptureBitboards() (east uint64, west uint64) {
+func (b *Board) pawnCaptureBitboards(nonpinned uint64) (east uint64, west uint64) {
 	notHFile := uint64(0x7F7F7F7F7F7F7F7F)
 	notAFile := uint64(0xFEFEFEFEFEFEFEFE)
 	var targets uint64
@@ -232,12 +232,12 @@ func (b *Board) pawnCaptureBitboards() (east uint64, west uint64) {
 	}
 	if b.wtomove {
 		targets |= b.black.all
-		ourpawns := b.white.pawns
+		ourpawns := b.white.pawns & nonpinned
 		east = ourpawns << 9 & notAFile & targets
 		west = ourpawns << 7 & notHFile & targets
 	} else {
 		targets |= b.white.all
-		ourpawns := b.black.pawns
+		ourpawns := b.black.pawns & nonpinned
 		east = ourpawns >> 7 & notAFile & targets
 		west = ourpawns >> 9 & notHFile & targets
 	}
@@ -245,13 +245,13 @@ func (b *Board) pawnCaptureBitboards() (east uint64, west uint64) {
 }
 
 // Generate all knight moves.
-func (b *Board) knightMoves(moveList *[]Move) {
+func (b *Board) knightMoves(moveList *[]Move, nonpinned uint64) {
 	var ourKnights, noFriendlyPieces uint64
 	if b.wtomove {
-		ourKnights = b.white.knights
+		ourKnights = b.white.knights & nonpinned
 		noFriendlyPieces = (^b.white.all)
 	} else {
-		ourKnights = b.black.knights
+		ourKnights = b.black.knights & nonpinned
 		noFriendlyPieces = (^b.black.all)
 	}
 	for ourKnights != 0 {
@@ -332,13 +332,13 @@ func (b *Board) kingMoves(moveList *[]Move) {
 }
 
 // Generate all rook moves using magic bitboards.
-func (b *Board) rookMoves(moveList *[]Move) {
+func (b *Board) rookMoves(moveList *[]Move, nonpinned uint64) {
 	var ourRooks, friendlyPieces uint64
 	if b.wtomove {
-		ourRooks = b.white.rooks
+		ourRooks = b.white.rooks & nonpinned
 		friendlyPieces = b.white.all
 	} else {
-		ourRooks = b.black.rooks
+		ourRooks = b.black.rooks & nonpinned
 		friendlyPieces = b.black.all
 	}
 	allPieces := b.white.all | b.black.all
@@ -351,13 +351,13 @@ func (b *Board) rookMoves(moveList *[]Move) {
 }
 
 // Generate all bishop moves using magic bitboards.
-func (b *Board) bishopMoves(moveList *[]Move) {
+func (b *Board) bishopMoves(moveList *[]Move, nonpinned uint64) {
 	var ourBishops, friendlyPieces uint64
 	if b.wtomove {
-		ourBishops = b.white.bishops
+		ourBishops = b.white.bishops & nonpinned
 		friendlyPieces = b.white.all
 	} else {
-		ourBishops = b.black.bishops
+		ourBishops = b.black.bishops & nonpinned
 		friendlyPieces = b.black.all
 	}
 	allPieces := b.white.all | b.black.all
@@ -370,13 +370,13 @@ func (b *Board) bishopMoves(moveList *[]Move) {
 }
 
 // Generate all queen moves using magic bitboards.
-func (b *Board) queenMoves(moveList *[]Move) {
+func (b *Board) queenMoves(moveList *[]Move, nonpinned uint64) {
 	var ourQueens, friendlyPieces uint64
 	if b.wtomove {
-		ourQueens = b.white.queens
+		ourQueens = b.white.queens & nonpinned
 		friendlyPieces = b.white.all
 	} else {
-		ourQueens = b.black.queens
+		ourQueens = b.black.queens & nonpinned
 		friendlyPieces = b.black.all
 	}
 	allPieces := b.white.all | b.black.all

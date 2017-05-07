@@ -8,6 +8,12 @@ import (
 	"strings"
 )
 
+// A testing-use function that ignores the error output
+func parseMove(movestr string) Move {
+	res, _ := ParseMove(movestr)
+	return res
+}
+
 // Some example valid move strings:
 // e1e2 b4d6 e7e8q a2a1n
 func ParseMove(movestr string) (Move, error) {
@@ -23,11 +29,16 @@ func ParseMove(movestr string) (Move, error) {
 	mv.Setto(Square(to)).Setfrom(Square(from))
 	if len(movestr) == 5 {
 		switch movestr[4] {
-		case 'n': mv.Setpromote(Knight)
-		case 'b': mv.Setpromote(Bishop)
-		case 'q': mv.Setpromote(Queen)
-		case 'r': mv.Setpromote(Rook)
-		default: return mv, errors.New("Invalid promotion symbol in move.")
+		case 'n':
+			mv.Setpromote(Knight)
+		case 'b':
+			mv.Setpromote(Bishop)
+		case 'q':
+			mv.Setpromote(Queen)
+		case 'r':
+			mv.Setpromote(Rook)
+		default:
+			return mv, errors.New("Invalid promotion symbol in move.")
 		}
 	}
 	return mv, nil

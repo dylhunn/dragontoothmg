@@ -21,18 +21,12 @@ func (b *Board) GenerateLegalMoves() []Move {
 	if b.wtomove { // assumes only one king
 		kingLocation = uint8(bits.TrailingZeros64(b.white.kings))
 		ourPiecesPtr = &(b.white)
-
 	} else {
 		kingLocation = uint8(bits.TrailingZeros64(b.black.kings))
 		ourPiecesPtr = &(b.black)
 	}
-	kingAttackers := b.countAttacks(b.wtomove, kingLocation, 2)
-	if kingAttackers >= 1 {
-
-		if kingAttackers == 1 { // if only one attack, we can evade it in several ways
-			// TODO
-		}
-
+	kingAttackers, blockerDestinations := b.countAttacks(b.wtomove, kingLocation, 2)
+	if kingAttackers >= 2 { // Under multiple attack, we must move the king.
 		b.kingPushes(&moves, ourPiecesPtr)
 		return moves
 	}
@@ -41,14 +35,27 @@ func (b *Board) GenerateLegalMoves() []Move {
 	pinnedPieces := b.generatePinnedMoves(&moves)
 	nonpinnedPieces := ^pinnedPieces
 
-	// Finally, compute ordinary moves, ignoring absolutely pinned pieces.
-	b.pawnPushes(&moves, nonpinnedPieces)
-	b.pawnCaptures(&moves, nonpinnedPieces)
-	b.knightMoves(&moves, nonpinnedPieces)
+	// Several move types can work in single check, but we must block the check
+	if kingAttackers == 1 {
+		// TODO
+		b.pawnPushes(&moves, nonpinnedPieces, blockerDestinations)
+		b.pawnCaptures(&moves, nonpinnedPieces, blockerDestinations)
+		b.knightMoves(&moves, nonpinnedPieces, blockerDestinations)
+		b.rookMoves(&moves, nonpinnedPieces, blockerDestinations)
+		b.bishopMoves(&moves, nonpinnedPieces, blockerDestinations)
+		b.queenMoves(&moves, nonpinnedPieces, blockerDestinations)
+		b.kingPushes(&moves, ourPiecesPtr)
+		return moves
+	}
+
+	// Finally, compute ordinary moves, ignoring absolutely pinned pieces on the board.
+	b.pawnPushes(&moves, nonpinnedPieces, everything)
+	b.pawnCaptures(&moves, nonpinnedPieces, everything)
+	b.knightMoves(&moves, nonpinnedPieces, everything)
+	b.rookMoves(&moves, nonpinnedPieces, everything)
+	b.bishopMoves(&moves, nonpinnedPieces, everything)
+	b.queenMoves(&moves, nonpinnedPieces, everything)
 	b.kingMoves(&moves)
-	b.rookMoves(&moves, nonpinnedPieces)
-	b.bishopMoves(&moves, nonpinnedPieces)
-	b.queenMoves(&moves, nonpinnedPieces)
 	return moves
 }
 
@@ -77,8 +84,9 @@ func (b *Board) generatePinnedMoves(moveList *[]Move) uint64 {
 		currRookIdx := uint8(bits.TrailingZeros64(oppRooks))
 		oppRooks &= oppRooks - 1
 		rookTargets := calculateRookMoveBitboard(currRookIdx, allPieces) & (^(oppPieces.all))
-		pinnedPiece := rookTargets & kingOrthoTargets // A piece is pinned iff it falls along both attack rays.
-		if pinnedPiece == 0 {                         // there is no pin
+		// A piece is pinned iff it falls along both attack rays.
+		pinnedPiece := rookTargets & kingOrthoTargets & ourPieces.all
+		if pinnedPiece == 0 { // there is no pin
 			continue
 		}
 		pinnedPieceIdx := uint8(bits.TrailingZeros64(pinnedPiece))
@@ -115,8 +123,8 @@ func (b *Board) generatePinnedMoves(moveList *[]Move) uint64 {
 		currBishopIdx := uint8(bits.TrailingZeros64(oppBishops))
 		oppBishops &= oppBishops - 1
 		bishopTargets := calculateBishopMoveBitboard(currBishopIdx, allPieces) & (^(oppPieces.all))
-		pinnedPiece := bishopTargets & kingDiagTargets // A piece is pinned iff it falls along both attack rays.
-		if pinnedPiece == 0 {                          // there is no pin
+		pinnedPiece := bishopTargets & kingDiagTargets & ourPieces.all
+		if pinnedPiece == 0 { // there is no pin
 			continue
 		}
 		pinnedPieceIdx := uint8(bits.TrailingZeros64(pinnedPiece))
@@ -127,9 +135,6 @@ func (b *Board) generatePinnedMoves(moveList *[]Move) uint64 {
 		if bishopToPinnedSlope != bishopToKingSlope { // just an intersection, not a pin
 			continue
 		}
-
-		//fmt.Println(pinnedPieceIdx/8, (currBishopIdx/8)+1)
-
 		allPinnedPieces |= pinnedPiece        // store pinned piece
 		if pinnedPiece&ourPieces.pawns != 0 { // it's a pawn; we might be able to capture with it
 			if (b.wtomove && (pinnedPieceIdx/8)+1 == currBishopIdx/8) ||
@@ -155,8 +160,10 @@ func (b *Board) generatePinnedMoves(moveList *[]Move) uint64 {
 }
 
 // Generate moves involving advancing pawns.
-func (b *Board) pawnPushes(moveList *[]Move, nonpinned uint64) {
+// Only pieces marked nonpinned can be moved. Only squares in allowDest can be moved to.
+func (b *Board) pawnPushes(moveList *[]Move, nonpinned uint64, allowDest uint64) {
 	targets, doubleTargets := b.pawnPushBitboards(nonpinned)
+	targets, doubleTargets = targets & allowDest, doubleTargets & allowDest
 	oneRankBack := 8
 	if b.wtomove {
 		oneRankBack = -oneRankBack
@@ -210,8 +217,13 @@ func (b *Board) pawnPushBitboards(nonpinned uint64) (targets uint64, doubleTarge
 }
 
 // A function that computes available pawn captures.
-func (b *Board) pawnCaptures(moveList *[]Move, nonpinned uint64) {
+// Only pieces marked nonpinned can be moved. Only squares in allowDest can be moved to.
+func (b *Board) pawnCaptures(moveList *[]Move, nonpinned uint64, allowDest uint64) {
 	east, west := b.pawnCaptureBitboards(nonpinned)
+	if (b.enpassant > 0) { // always allow us to try en-passant captures
+		allowDest = west | 1 << b.enpassant
+	}
+	east, west = east & allowDest, west & allowDest
 	bitboards := [2]uint64{east, west}
 	if !b.wtomove {
 		bitboards[0], bitboards[1] = bitboards[1], bitboards[0]
@@ -247,6 +259,8 @@ func (b *Board) pawnCaptureBitboards(nonpinned uint64) (east uint64, west uint64
 	notHFile := uint64(0x7F7F7F7F7F7F7F7F)
 	notAFile := uint64(0xFEFEFEFEFEFEFEFE)
 	var targets uint64
+	// TODO(dylhunn): Always try the en passant capture and verify check status, regardless of
+	// valid square requirements
 	if b.enpassant > 0 { // an en-passant target is active
 		targets = (1 << b.enpassant)
 	}
@@ -265,7 +279,8 @@ func (b *Board) pawnCaptureBitboards(nonpinned uint64) (east uint64, west uint64
 }
 
 // Generate all knight moves.
-func (b *Board) knightMoves(moveList *[]Move, nonpinned uint64) {
+// Only pieces marked nonpinned can be moved. Only squares in allowDest can be moved to.
+func (b *Board) knightMoves(moveList *[]Move, nonpinned uint64, allowDest uint64) {
 	var ourKnights, noFriendlyPieces uint64
 	if b.wtomove {
 		ourKnights = b.white.knights & nonpinned
@@ -277,7 +292,7 @@ func (b *Board) knightMoves(moveList *[]Move, nonpinned uint64) {
 	for ourKnights != 0 {
 		currentKnight := bits.TrailingZeros64(ourKnights)
 		ourKnights &= ourKnights - 1
-		targets := knightMasks[currentKnight] & noFriendlyPieces
+		targets := knightMasks[currentKnight] & noFriendlyPieces & allowDest
 		genMovesFromTargets(moveList, Square(currentKnight), targets)
 	}
 }
@@ -329,9 +344,9 @@ func (b *Board) kingMoves(moveList *[]Move) {
 		queensideClear := allPieces&((1<<3)|(1<<2)|(1<<1)) == 0
 		// skip the king square, since this won't be called while in check
 		canCastleQueenside = b.whiteCanCastleQueenside() &&
-			queensideClear && !b.anyUnderDirectAttack(true, 0, 1, 2, 3)
+			queensideClear && !b.anyUnderDirectAttack(true, 2, 3)
 		canCastleKingside = b.whiteCanCastleKingside() &&
-			kingsideClear && !b.anyUnderDirectAttack(true, 5, 6, 7)
+			kingsideClear && !b.anyUnderDirectAttack(true, 5, 6)
 	} else {
 		ourKingLocation = uint8(bits.TrailingZeros64(b.black.kings))
 		ptrToOurBitboards = &(b.black)
@@ -339,9 +354,9 @@ func (b *Board) kingMoves(moveList *[]Move) {
 		queensideClear := allPieces&((1<<57)|(1<<58)|(1<<59)) == 0
 		// skip the king square, since this won't be called while in check
 		canCastleQueenside = b.blackCanCastleQueenside() &&
-			queensideClear && !b.anyUnderDirectAttack(false, 56, 57, 58, 59)
+			queensideClear && !b.anyUnderDirectAttack(false, 58, 59)
 		canCastleKingside = b.blackCanCastleKingside() &&
-			kingsideClear && !b.anyUnderDirectAttack(false, 61, 62, 63)
+			kingsideClear && !b.anyUnderDirectAttack(false, 61, 62)
 	}
 	if canCastleKingside {
 		var move Move
@@ -359,7 +374,8 @@ func (b *Board) kingMoves(moveList *[]Move) {
 }
 
 // Generate all rook moves using magic bitboards.
-func (b *Board) rookMoves(moveList *[]Move, nonpinned uint64) {
+// Only pieces marked nonpinned can be moved. Only squares in allowDest can be moved to.
+func (b *Board) rookMoves(moveList *[]Move, nonpinned uint64, allowDest uint64) {
 	var ourRooks, friendlyPieces uint64
 	if b.wtomove {
 		ourRooks = b.white.rooks & nonpinned
@@ -372,13 +388,14 @@ func (b *Board) rookMoves(moveList *[]Move, nonpinned uint64) {
 	for ourRooks != 0 {
 		currRook := uint8(bits.TrailingZeros64(ourRooks))
 		ourRooks &= ourRooks - 1
-		targets := calculateRookMoveBitboard(currRook, allPieces) & (^friendlyPieces)
+		targets := calculateRookMoveBitboard(currRook, allPieces) & (^friendlyPieces) & allowDest
 		genMovesFromTargets(moveList, Square(currRook), targets)
 	}
 }
 
 // Generate all bishop moves using magic bitboards.
-func (b *Board) bishopMoves(moveList *[]Move, nonpinned uint64) {
+// Only pieces marked nonpinned can be moved. Only squares in allowDest can be moved to.
+func (b *Board) bishopMoves(moveList *[]Move, nonpinned uint64, allowDest uint64) {
 	var ourBishops, friendlyPieces uint64
 	if b.wtomove {
 		ourBishops = b.white.bishops & nonpinned
@@ -391,13 +408,14 @@ func (b *Board) bishopMoves(moveList *[]Move, nonpinned uint64) {
 	for ourBishops != 0 {
 		currBishop := uint8(bits.TrailingZeros64(ourBishops))
 		ourBishops &= ourBishops - 1
-		targets := calculateBishopMoveBitboard(currBishop, allPieces) & (^friendlyPieces)
+		targets := calculateBishopMoveBitboard(currBishop, allPieces) & (^friendlyPieces) & allowDest
 		genMovesFromTargets(moveList, Square(currBishop), targets)
 	}
 }
 
 // Generate all queen moves using magic bitboards.
-func (b *Board) queenMoves(moveList *[]Move, nonpinned uint64) {
+// Only pieces marked nonpinned can be moved. Only squares in allowDest can be moved to.
+func (b *Board) queenMoves(moveList *[]Move, nonpinned uint64, allowDest uint64) {
 	var ourQueens, friendlyPieces uint64
 	if b.wtomove {
 		ourQueens = b.white.queens & nonpinned
@@ -411,10 +429,10 @@ func (b *Board) queenMoves(moveList *[]Move, nonpinned uint64) {
 		currQueen := uint8(bits.TrailingZeros64(ourQueens))
 		ourQueens &= ourQueens - 1
 		// bishop motion
-		diag_targets := calculateBishopMoveBitboard(currQueen, allPieces) & (^friendlyPieces)
+		diag_targets := calculateBishopMoveBitboard(currQueen, allPieces) & (^friendlyPieces) & allowDest
 		genMovesFromTargets(moveList, Square(currQueen), diag_targets)
 		// rook motion
-		ortho_targets := calculateRookMoveBitboard(currQueen, allPieces) & (^friendlyPieces)
+		ortho_targets := calculateRookMoveBitboard(currQueen, allPieces) & (^friendlyPieces) & allowDest
 		genMovesFromTargets(moveList, Square(currQueen), ortho_targets)
 	}
 }
@@ -442,14 +460,17 @@ func (b *Board) anyUnderDirectAttack(byBlack bool, squares ...uint8) bool {
 }
 
 func (b *Board) underDirectAttack(byBlack bool, origin uint8) bool {
-	return b.countAttacks(byBlack, origin, 1) >= 1
+	count, _ := b.countAttacks(byBlack, origin, 1)
+	return count >= 1
 }
 
 // Compute whether an individual square is under direct attack. Potentially expensive.
 // Can be asked to abort early, when a certain number of attacks are found.
 // The found number might exceed the abortion threshold, since attacks are grouped.
-func (b *Board) countAttacks(byBlack bool, origin uint8, abortEarly int) int {
+// Also returns the mask of attackers.
+func (b *Board) countAttacks(byBlack bool, origin uint8, abortEarly int) (int, uint64) {
 	numAttacks := 0
+	var blockerDestinations uint64 = 0
 	allPieces := b.white.all | b.black.all
 	var opponentPieces *bitboards
 	if byBlack {
@@ -460,33 +481,54 @@ func (b *Board) countAttacks(byBlack bool, origin uint8, abortEarly int) int {
 	// find attacking knights
 	knight_attackers := knightMasks[origin] & opponentPieces.knights
 	numAttacks += bits.OnesCount64(knight_attackers)
+	blockerDestinations |= knight_attackers
 	if numAttacks >= abortEarly {
-		return numAttacks
+		return numAttacks, blockerDestinations
 	}
 	// find attacking bishops and queens
 	diag_candidates := magicBishopBlockerMasks[origin] & allPieces
 	diag_dbindex := (diag_candidates * magicNumberBishop[origin]) >> magicBishopShifts[origin]
-	diag_potential_attackers := magicMovesBishop[origin][diag_dbindex] & opponentPieces.all
-	diag_attackers := diag_potential_attackers & (opponentPieces.bishops | opponentPieces.queens)
+	origin_diag_rays := magicMovesBishop[origin][diag_dbindex]
+	diag_attackers := origin_diag_rays & (opponentPieces.bishops | opponentPieces.queens)
 	numAttacks += bits.OnesCount64(diag_attackers)
+	blockerDestinations |= diag_attackers
 	if numAttacks >= abortEarly {
-		return numAttacks
+		return numAttacks, blockerDestinations
 	}
+	// If we found diagonal attackers, add interposed squares to the blocker mask.
+	for diag_attackers != 0 {
+		curr_attacker := uint8(bits.TrailingZeros64(diag_attackers))
+		diag_attackers &= diag_attackers - 1
+		diag_attacks := calculateBishopMoveBitboard(curr_attacker, allPieces)
+		attackRay := diag_attacks & origin_diag_rays
+		blockerDestinations |= attackRay
+	}
+
 	// find attacking rooks and queens
 	ortho_candidates := magicRookBlockerMasks[origin] & allPieces
 	ortho_dbindex := (ortho_candidates * magicNumberRook[origin]) >> magicRookShifts[origin]
-	ortho_potential_attackers := magicMovesRook[origin][ortho_dbindex] & opponentPieces.all
-	ortho_attackers := ortho_potential_attackers & (opponentPieces.rooks | opponentPieces.queens)
+	origin_ortho_rays := magicMovesRook[origin][ortho_dbindex]
+	ortho_attackers := origin_ortho_rays & (opponentPieces.rooks | opponentPieces.queens)
 	numAttacks += bits.OnesCount64(ortho_attackers)
+	blockerDestinations |= ortho_attackers
 	if numAttacks >= abortEarly {
-		return numAttacks
+		return numAttacks, blockerDestinations
+	}
+	// If we found orthogonal attackers, add interposed squares to the blocker mask.
+	for ortho_attackers != 0 {
+		curr_attacker := uint8(bits.TrailingZeros64(ortho_attackers))
+		ortho_attackers &= ortho_attackers - 1
+		ortho_attacks := calculateRookMoveBitboard(curr_attacker, allPieces)
+		attackRay := ortho_attacks & origin_ortho_rays
+		blockerDestinations |= attackRay
 	}
 	// find attacking kings
 	// TODO(dylhunn): What if the opponent king can't actually move to the origin square?
 	king_attackers := kingMasks[origin] & opponentPieces.kings
 	numAttacks += bits.OnesCount64(king_attackers)
+	blockerDestinations |= king_attackers
 	if numAttacks >= abortEarly {
-		return numAttacks
+		return numAttacks, blockerDestinations
 	}
 	// find attacking pawns
 	var pawn_attackers uint64 = 0
@@ -503,10 +545,11 @@ func (b *Board) countAttacks(byBlack bool, origin uint8, abortEarly int) int {
 	}
 	pawn_attackers &= opponentPieces.pawns
 	numAttacks += bits.OnesCount64(pawn_attackers)
+	blockerDestinations |= pawn_attackers
 	if numAttacks >= abortEarly {
-		return numAttacks
+		return numAttacks, blockerDestinations
 	}
-	return numAttacks
+	return numAttacks, blockerDestinations
 }
 
 // Calculates the attack bitboard for a rook. This might include targeted squares

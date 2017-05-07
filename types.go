@@ -77,7 +77,7 @@ type bitboards struct {
 // 3 bits: promotion
 
 // Move bitwise structure; internal implementation is private.
-type Move uint32
+type Move uint16
 
 func (m *Move) To() Square {
 	return Square(*m & 0x3F)

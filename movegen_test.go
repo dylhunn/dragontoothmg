@@ -13,9 +13,9 @@ func TestPawnPushes(t *testing.T) {
 	for k, v := range positions {
 		moves := make([]Move, 0, 45)
 		b := ParseFen(k)
-		b.pawnPushes(&moves, everything)
+		b.pawnPushes(&moves, everything, everything)
 		if len(moves) != v {
-			t.Error("Pawn pushes: wrong length. Expected", v, "but got", 
+			t.Error("Pawn pushes: wrong length. Expected", v, "but got",
 				len(moves), "for FEN", b.ToFen())
 		}
 	}
@@ -30,9 +30,9 @@ func TestPawnCaptures(t *testing.T) {
 	for k, v := range positions {
 		moves := make([]Move, 0, 45)
 		b := ParseFen(k)
-		b.pawnCaptures(&moves, everything)
+		b.pawnCaptures(&moves, everything, everything)
 		if len(moves) != v {
-			t.Error("Pawn captures: wrong length. Expected", v, "but got", 
+			t.Error("Pawn captures: wrong length. Expected", v, "but got",
 				len(moves), "for FEN", b.ToFen())
 		}
 	}
@@ -63,14 +63,14 @@ func TestKnightPosition0(t *testing.T) {
 	testboard := Board{white: whitepieces, black: blackpieces, wtomove: true}
 
 	moves := make([]Move, 0, 45)
-	testboard.knightMoves(&moves, everything)
+	testboard.knightMoves(&moves, everything, everything)
 	if len(moves) != 20 {
 		t.Error("Knight moves: wrong length. Expected 20, got", len(moves))
 	}
 
 	testboard.wtomove = false
 	moves2 := make([]Move, 0, 45)
-	testboard.knightMoves(&moves2, everything)
+	testboard.knightMoves(&moves2, everything, everything)
 	if len(moves2) != 27 {
 		t.Error("Knight moves: wrong length. Expected 27, got", len(moves2))
 	}
@@ -112,7 +112,7 @@ func TestRookPositions(t *testing.T) {
 	for k, v := range positions {
 		moves := make([]Move, 0, 45)
 		b := ParseFen(k)
-		b.rookMoves(&moves, everything)
+		b.rookMoves(&moves, everything, everything)
 		if len(moves) != v {
 			t.Error("Rook moves: wrong length. Expected", v, "but got", len(moves))
 		}
@@ -129,7 +129,7 @@ func TestBishopPositions(t *testing.T) {
 	for k, v := range positions {
 		moves := make([]Move, 0, 45)
 		b := ParseFen(k)
-		b.bishopMoves(&moves, everything)
+		b.bishopMoves(&moves, everything, everything)
 		if len(moves) != v {
 			t.Error("Bishop moves: wrong length. Expected", v, "but got", len(moves))
 		}
@@ -146,7 +146,7 @@ func TestQueenPositions(t *testing.T) {
 	for k, v := range positions {
 		moves := make([]Move, 0, 45)
 		b := ParseFen(k)
-		b.queenMoves(&moves, everything)
+		b.queenMoves(&moves, everything, everything)
 		if len(moves) != v {
 			t.Error("Queen moves: wrong length. Expected", v, "but got", len(moves))
 		}
@@ -200,13 +200,13 @@ func TestUnderDirectAttack(t *testing.T) {
 // - moving the king
 // - capture the checking piece
 // - breaking the check
-func testBreakCheck(t *testing.T) {
+func TestBreakCheck(t *testing.T) {
 	positions := map[string]int{
 		"k1N5/3RrQ2/8/2B4R/8/2N5/8/4K3 w - - 0 0": 13, // Non-pawn check-breaks and captures
-		"8/8/1p2p3/R6k/8/8/8/K7 b - - 0 0":        3,  // breaks and captures with a pawn
+		"8/8/1p2p3/R6k/8/8/8/K7 b - - 0 0":        7,  // breaks and captures with a pawn
 		"3k4/2P4r/1P6/8/8/8/8/K7 b - - 0 0":       5,  // break the check of a pawn
 		"3k4/2P1P3/1P6/8/8/8/8/K7 b - - 0 0":      4,  // double check with pawns: must move king
-		"3k4/7r/1P6/8/7B/8/3R4/K7 b - - 0 0":      4,  // double check: must move king
+		"3k4/7r/1P6/8/7B/8/3R4/K7 b - - 0 0":      2,  // double check: must move king
 		"8/8/8/1k6/2Pp4/8/8/4K3 b - c3 0 0":       9,  // en passant check evasion
 		"8/8/8/1k6/3Pp3/8/8/K4Q2 b - d3 0 0":      6,  // en passant check evasion
 	}
@@ -223,9 +223,9 @@ func testBreakCheck(t *testing.T) {
 
 func TestPinnedBishop(t *testing.T) {
 	positions := map[string]int{
-		"4k3/3b4/8/8/Q7/8/8/4K3 b - - 0 0":      3,  // pinned bishop
+		"4k3/3b4/8/8/Q7/8/8/4K3 b - - 0 0":      3, // pinned bishop
 		"4k3/3b4/2b5/8/Q7/8/8/4K3 b - - 0 0":    0, // a "double" pin is not actually a pin
-		"4k3/3b1b2/2Q3Q1/8/8/8/8/4K3 b - - 0 0": 2,  // two close pins
+		"4k3/3b1b2/2Q3Q1/8/8/8/8/4K3 b - - 0 0": 2, // two close pins
 	}
 	for k, v := range positions {
 		moves := make([]Move, 0, 45)
@@ -277,6 +277,7 @@ func TestDiagPins(t *testing.T) {
 		"4k3/8/2p5/8/B7/6q1/5N2/4K3 b - - 0 0":      0,
 		"4k3/8/6p1/3b3Q/2P5/1K6/8/8 w - - 0 0":      1,
 		"4k3/8/6p1/3b3Q/2P5/1K6/8/8 b - - 0 0":      1,
+		"4k3/8/8/b7/7q/6P1/8/4K3 w - - 0 0":         1, // tet pin while in check
 	}
 	pinLocs := map[string]uint8{
 		"4k3/3p4/2B1p3/8/1q6/4R3/3P4/4K3 w - - 0 0": AlgebraicToIndex("d2"), // diagonal pawns
@@ -287,6 +288,7 @@ func TestDiagPins(t *testing.T) {
 		"4k3/8/2p5/8/B7/6q1/5N2/4K3 b - - 0 0":      AlgebraicToIndex("c6"),
 		"4k3/8/6p1/3b3Q/2P5/1K6/8/8 w - - 0 0":      AlgebraicToIndex("c4"),
 		"4k3/8/6p1/3b3Q/2P5/1K6/8/8 b - - 0 0":      AlgebraicToIndex("g6"),
+		"4k3/8/8/b7/7q/6P1/8/4K3 w - - 0 0":         AlgebraicToIndex("g3"),
 	}
 	for k, v := range positions {
 		moves := make([]Move, 0, 45)
@@ -317,6 +319,7 @@ func TestOrthoPins(t *testing.T) {
 		"4k3/4p3/8/8/8/4R3/q2PK3/8 w - - 0 0":   0, // horizontal pawn*/
 		"4k3/4p3/8/8/8/4R3/q2PK3/8 b - - 0 0":   2,
 		"8/4k3/8/4p3/8/4R3/q2PK3/8 b - - 0 0":   1,
+		"2q1k3/8/2R5/8/2K4r/8/8/8 w - - 0 0":    3, // test pin while in check
 	}
 	pinLocs := map[string]uint8{
 		"4k3/8/4r3/4Q3/1q6/2Q5/8/4K3 b - - 0 0": AlgebraicToIndex("e6"),
@@ -327,6 +330,7 @@ func TestOrthoPins(t *testing.T) {
 		"4k3/4p3/8/8/8/4R3/q2PK3/8 w - - 0 0":   AlgebraicToIndex("d2"), // horizontal
 		"4k3/4p3/8/8/8/4R3/q2PK3/8 b - - 0 0":   AlgebraicToIndex("e7"),
 		"8/4k3/8/4p3/8/4R3/q2PK3/8 b - - 0 0":   AlgebraicToIndex("e5"),
+		"2q1k3/8/2R5/8/2K4r/8/8/8 w - - 0 0":    AlgebraicToIndex("c6"),
 	}
 	for k, v := range positions {
 		moves := make([]Move, 0, 45)
@@ -346,8 +350,21 @@ func TestOrthoPins(t *testing.T) {
 	}
 }
 
+func TestCountAttacks(t *testing.T) {
+	b := ParseFen("3B4/8/1k4Rq/P1pP1P2/8/2p5/3K3r/1n2b3 w - c6 0 0")
+	b2 := ParseFen("3B4/8/1k4Rq/P1pP1P2/8/2p5/3K3r/1n2b3 b - - 0 0")
+	numAttacks, blockerDestinations := b.countAttacks(
+		true, AlgebraicToIndex("d2"), 1000) // on white king
+	numAttacks2, blockerDestinations2 := b2.countAttacks(
+		false, AlgebraicToIndex("b6"), 1000)
+	if numAttacks != 5 || numAttacks2 != 3 ||
+		blockerDestinations != 0x80402014F012 || blockerDestinations2 != 0x8047C0100000000 {
+		t.Error("Attack counting failed.")
+	}
+}
+
 // An incomplete, yet giant, test suite of positions. Tests legal move generation.
-func testLegalMoves(t *testing.T) {
+func TestLegalMoves(t *testing.T) {
 	positions := map[string]int{
 		"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1":             20,
 		"r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1": 48,

@@ -6,7 +6,7 @@
 Dragontooth Movegen | Dylan D. Hunn
 ==================================
 
-Dragontooth Movegen is a fast, magic-bitboard chess move generator written entirely in Go. It provides a simple API for generating pseudo-legal moves.
+Dragontooth Movegen is a fast, magic-bitboard chess move generator written entirely in Go. It provides a simple API for generating legal moves.
 
 Repo summary
 ============
@@ -20,7 +20,7 @@ Here is a summary of the important files in the repo:
 | constants.go | All constants for move generation are hard-coded here, along with functions to compute the magic bitboard lookup tables when the file loads.         |
 | util.go      | This file contains supporting library functions, for FEN reading and conversions.                                                                    |
 
-**This project is currently a prototype.** It works, although optimizations are underway, along with a legal move generation feature.
+**This project is currently a prototype.** It works, although optimizations are underway.
 
 Installing and building the library
 ===================================
@@ -48,7 +48,7 @@ You can find the documentation [here](https://godoc.org/github.com/dylhunn/drago
 Here is a simple example invocation:
 
     board := movegen.ParseFen("1Q2rk2/2p2p2/1n4b1/N7/2B1Pp1q/2B4P/1QPP4/4K2R b K e3 4 30")
-    moveList := board.GeneratePseudolegalMoves()
+    moveList := board.GenerateLegalMoves()
     for _, curr := range moveList {
     	fmt.Println("Moved to: %v", dragontoothmg.IndexToAlgebraic(curr.To()))
     }

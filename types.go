@@ -22,10 +22,10 @@ type Board struct {
 	wtomove       bool
 	enpassant     uint8 // square id (16-23 or 40-47) where en passant capture is possible
 	castlerights  uint8
+	halfmoveclock uint8
+	fullmoveno    uint16
 	white         bitboards
 	black         bitboards
-	halfmoveclock int
-	fullmoveno    int
 }
 
 // Castle rights helpers. Data stored inside, from LSB:
@@ -77,7 +77,7 @@ type bitboards struct {
 // 3 bits: promotion
 
 // Move bitwise structure; internal implementation is private.
-type Move uint32
+type Move uint16
 
 func (m *Move) To() Square {
 	return Square(*m & 0x3F)
@@ -103,7 +103,8 @@ func (m *Move) Setpromote(p Piece) *Move {
 	return m
 }
 func (m *Move) String() string {
-	return fmt.Sprintf("[from: %v, to: %v, promote: %v]", m.From(), m.To(), m.Promote())
+	return fmt.Sprintf("[from: %v, to: %v, promote: %v]",
+		IndexToAlgebraic(m.From()), IndexToAlgebraic(m.To()), m.Promote())
 }
 
 // Square index values from 0-63.

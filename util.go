@@ -2,25 +2,55 @@ package dragontoothmg
 
 import (
 	"fmt"
+	"log"
 	"strconv"
 	"strings"
 )
 
+func printBitboard(bitboard uint64) {
+	for i := 63; i >= 0; i-- {
+		j := (i/8)*8 + (7 - (i % 8))
+		if bitboard&(uint64(1)<<uint8(j)) == 0 {
+			fmt.Print("-")
+		} else {
+			fmt.Print("X")
+		}
+		if i%8 == 0 {
+			fmt.Println()
+		}
+	}
+	fmt.Println()
+}
+
+func printMoves(moves []Move) {
+	fmt.Println("Moves:")
+	for _, v := range moves {
+		fmt.Println(&v)
+	}
+}
+
 // Accepts an algebraic notation chess square, and converts it to a square ID
 // as used by Dragontooth (in both the board and move types).
 func AlgebraicToIndex(alg string) uint8 {
-	// BUG(dylhunn): Handle malformed input for algebraic to index
-	return (strings.ToLower(alg)[0] - 'a') + ((alg[1] - '1') * 8)
+	firstchar := strings.ToLower(alg)[0]
+	if firstchar < 'a' || firstchar > 'h' || alg[1] < '1' || alg[1] > '8' {
+		log.SetFlags(log.LstdFlags | log.Lshortfile)
+		log.Fatal("Could not parse algebraic: ", alg)
+	}
+	return (firstchar - 'a') + ((alg[1] - '1') * 8)
 }
 
 // Accepts a Dragontooth Square ID, and converts it to an algebraic square.
 func IndexToAlgebraic(id Square) string {
-	// BUG(dylhunn): Handle malformed input for index to algebraic
+	if id < 0 || id > 63 {
+		log.SetFlags(log.LstdFlags | log.Lshortfile)
+		log.Fatal("Could not parse index: ", id)
+	}
 	rune := rune((uint8(id) % 8) + 'a')
 	return fmt.Sprintf("%c", rune) + strconv.Itoa((int(id)/8)+1)
 }
 
-// Serializes a board position to a Fen string
+// Serializes a board position to a Fen string.
 func (b *Board) ToFen() string {
 	var position string
 	var empty int // empty slots
@@ -108,7 +138,7 @@ func (b *Board) ToFen() string {
 	} else {
 		position += "-"
 	}
-	position = position + " " + strconv.Itoa(b.halfmoveclock) + " " + strconv.Itoa(b.fullmoveno)
+	position = position + " " + strconv.Itoa(int(b.halfmoveclock)) + " " + strconv.Itoa(int(b.fullmoveno))
 	return position
 }
 
@@ -185,11 +215,13 @@ func ParseFen(fen string) Board {
 	}
 
 	if len(tokens) > 4 {
-		b.halfmoveclock, _ = strconv.Atoi(tokens[4])
+		result, _ := strconv.Atoi(tokens[4])
+		b.halfmoveclock = uint8(result)
 	}
 
 	if len(tokens) > 5 {
-		b.fullmoveno, _ = strconv.Atoi(tokens[5])
+		result, _ := strconv.Atoi(tokens[5])
+		b.fullmoveno = uint16(result)
 	}
 	return b
 }

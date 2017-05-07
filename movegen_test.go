@@ -309,6 +309,25 @@ func TestDiagPins(t *testing.T) {
 	}
 }
 
+func TestTrickyCornerCases(t *testing.T) {
+	positions := map[string]int{
+		"8/8/8/8/k1Pp3Q/8/8/2K5 b - c3 0 0": 5, // e.p. capture into check
+		"8/8/8/8/1kPp4/8/8/2K1B3 b - c3 0 0": 6, // e.p. breaks check
+	}
+	for k, v := range positions {
+		b := ParseFen(k)
+		fenbefore := b.ToFen()
+		moves := b.GenerateLegalMoves()
+		fenafter := b.ToFen()
+		if fenbefore != fenafter {
+			t.Error("En passant case corrupted board state.")
+		}
+		if len(moves) != v {
+			t.Error("Tricky moves: wrong length. Expected", v, "but got", len(moves), "for position", b.ToFen())
+		}
+	}
+}
+
 func TestOrthoPins(t *testing.T) {
 	positions := map[string]int{
 		"4k3/8/4r3/4Q3/1q6/2Q5/8/4K3 b - - 0 0": 2,
@@ -493,7 +512,12 @@ func TestLegalMoves(t *testing.T) {
 		"n1n5/PPPk4/8/8/8/8/4Kppp/5N1N b - - 0 1":                              24}
 	for k, v := range positions {
 		b := ParseFen(k)
+		fenbefore := b.ToFen()
 		moves := b.GenerateLegalMoves()
+		fenafter := b.ToFen()
+		if fenbefore != fenafter {
+			t.Error("En passant case corrupted board state.")
+		}
 		if len(moves) != v {
 			t.Error("Legal moves: wrong length. Expected", v, "but got", len(moves), "for position", b.ToFen())
 		}

@@ -1,11 +1,37 @@
 package dragontoothmg
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"strconv"
 	"strings"
 )
+
+// Some example valid move strings:
+// e1e2 b4d6 e7e8q a2a1n
+func ParseMove(movestr string) (Move, error) {
+	var mv Move
+	if len(movestr) < 4 || len(movestr) > 5 {
+		return mv, errors.New("Invalid move to parse.")
+	}
+	from, errf := AlgebraicToIndex(movestr[0:2])
+	to, errto := AlgebraicToIndex(movestr[2:4])
+	if errf != nil || errto != nil {
+		return mv, errors.New("Invalid move to parse.")
+	}
+	mv.Setto(Square(to)).Setfrom(Square(from))
+	if len(movestr) == 5 {
+		switch movestr[4] {
+		case 'n': mv.Setpromote(Knight)
+		case 'b': mv.Setpromote(Bishop)
+		case 'q': mv.Setpromote(Queen)
+		case 'r': mv.Setpromote(Rook)
+		default: return mv, errors.New("Invalid promotion symbol in move.")
+		}
+	}
+	return mv, nil
+}
 
 func printBitboard(bitboard uint64) {
 	for i := 63; i >= 0; i-- {
@@ -29,15 +55,24 @@ func printMoves(moves []Move) {
 	}
 }
 
-// Accepts an algebraic notation chess square, and converts it to a square ID
-// as used by Dragontooth (in both the board and move types).
-func AlgebraicToIndex(alg string) uint8 {
-	firstchar := strings.ToLower(alg)[0]
-	if firstchar < 'a' || firstchar > 'h' || alg[1] < '1' || alg[1] > '8' {
+// Used for in-place algtoindex parsing where the result is guaranteed to be correct
+func algebraicToIndexFatal(alg string) uint8 {
+	res, err := AlgebraicToIndex(alg)
+	if err != nil {
 		log.SetFlags(log.LstdFlags | log.Lshortfile)
 		log.Fatal("Could not parse algebraic: ", alg)
 	}
-	return (firstchar - 'a') + ((alg[1] - '1') * 8)
+	return res
+}
+
+// Accepts an algebraic notation chess square, and converts it to a square ID
+// as used by Dragontooth (in both the board and move types).
+func AlgebraicToIndex(alg string) (uint8, error) {
+	firstchar := strings.ToLower(alg)[0]
+	if firstchar < 'a' || firstchar > 'h' || alg[1] < '1' || alg[1] > '8' {
+		return 64, errors.New("Invalid algebraic " + alg)
+	}
+	return (firstchar - 'a') + ((alg[1] - '1') * 8), nil
 }
 
 // Accepts a Dragontooth Square ID, and converts it to an algebraic square.
@@ -211,7 +246,12 @@ func ParseFen(fen string) Board {
 		b.flipBlackQueensideCastle()
 	}
 	if tokens[3] != "-" {
-		b.enpassant = AlgebraicToIndex(tokens[3])
+		res, err := AlgebraicToIndex(tokens[3])
+		if err != nil {
+			var b2 Board
+			return b2 // TODO(dylhunn): return error instead of blank board
+		}
+		b.enpassant = res
 	}
 
 	if len(tokens) > 4 {

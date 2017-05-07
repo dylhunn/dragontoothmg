@@ -156,19 +156,19 @@ func TestQueenPositions(t *testing.T) {
 func TestUnderDirectAttack(t *testing.T) {
 	b1 := ParseFen("r1N1kbnN/3pp1p1/1p2q3/2rR1b2/2QP1nBR/6B1/1PP1P1P1/RNK4R b - - 0 0")
 	solutionsByBlack := map[uint8]bool{
-		AlgebraicToIndex("a5"): true,
-		AlgebraicToIndex("a7"): true,
-		AlgebraicToIndex("d8"): true,
-		AlgebraicToIndex("f7"): true,
-		AlgebraicToIndex("h7"): true,
-		AlgebraicToIndex("h6"): true,
-		AlgebraicToIndex("d8"): true,
-		AlgebraicToIndex("e2"): true,
-		AlgebraicToIndex("f5"): true,
-		AlgebraicToIndex("b5"): true,
-		AlgebraicToIndex("d1"): false,
-		AlgebraicToIndex("g5"): false,
-		AlgebraicToIndex("b7"): false,
+		algebraicToIndexFatal("a5"): true,
+		algebraicToIndexFatal("a7"): true,
+		algebraicToIndexFatal("d8"): true,
+		algebraicToIndexFatal("f7"): true,
+		algebraicToIndexFatal("h7"): true,
+		algebraicToIndexFatal("h6"): true,
+		algebraicToIndexFatal("d8"): true,
+		algebraicToIndexFatal("e2"): true,
+		algebraicToIndexFatal("f5"): true,
+		algebraicToIndexFatal("b5"): true,
+		algebraicToIndexFatal("d1"): false,
+		algebraicToIndexFatal("g5"): false,
+		algebraicToIndexFatal("b7"): false,
 	}
 	for k, v := range solutionsByBlack {
 		attacked := b1.underDirectAttack(true, k)
@@ -179,14 +179,14 @@ func TestUnderDirectAttack(t *testing.T) {
 
 	b2 := ParseFen("r1N1kbnN/3pp3/1p2q3/2rR1bpP/2QP1nBR/6B1/1PP1P1P1/RNK4R b - g6 0 0")
 	solutionsByWhite := map[uint8]bool{
-		AlgebraicToIndex("c2"): true, // TODO(dylhunn): this case is dubious
-		AlgebraicToIndex("b3"): true,
-		AlgebraicToIndex("b5"): true,
-		AlgebraicToIndex("b6"): true,
-		AlgebraicToIndex("g6"): true,
-		AlgebraicToIndex("g8"): false,
-		AlgebraicToIndex("e6"): false,
-		AlgebraicToIndex("e8"): false,
+		algebraicToIndexFatal("c2"): true, // TODO(dylhunn): this case is dubious
+		algebraicToIndexFatal("b3"): true,
+		algebraicToIndexFatal("b5"): true,
+		algebraicToIndexFatal("b6"): true,
+		algebraicToIndexFatal("g6"): true,
+		algebraicToIndexFatal("g8"): false,
+		algebraicToIndexFatal("e6"): false,
+		algebraicToIndexFatal("e8"): false,
 	}
 	for k, v := range solutionsByWhite {
 		attacked := b2.underDirectAttack(false, k)
@@ -280,15 +280,15 @@ func TestDiagPins(t *testing.T) {
 		"4k3/8/8/b7/7q/6P1/8/4K3 w - - 0 0":         1, // tet pin while in check
 	}
 	pinLocs := map[string]uint8{
-		"4k3/3p4/2B1p3/8/1q6/4R3/3P4/4K3 w - - 0 0": AlgebraicToIndex("d2"), // diagonal pawns
-		"4k3/3p4/2B1p3/8/1q6/4R3/3P4/4K3 b - - 0 0": AlgebraicToIndex("e6"),
-		"4k3/8/8/8/1q6/2Q5/8/4K3 w - - 0 0":         AlgebraicToIndex("c3"),
-		"4k3/8/4r3/4Q3/1q6/2Q5/8/4K3 w - - 0 0":     AlgebraicToIndex("c3"), // TODO: only checks one of two pins
-		"4k3/8/2p5/8/B7/6q1/5N2/4K3 w - - 0 0":      AlgebraicToIndex("f2"),
-		"4k3/8/2p5/8/B7/6q1/5N2/4K3 b - - 0 0":      AlgebraicToIndex("c6"),
-		"4k3/8/6p1/3b3Q/2P5/1K6/8/8 w - - 0 0":      AlgebraicToIndex("c4"),
-		"4k3/8/6p1/3b3Q/2P5/1K6/8/8 b - - 0 0":      AlgebraicToIndex("g6"),
-		"4k3/8/8/b7/7q/6P1/8/4K3 w - - 0 0":         AlgebraicToIndex("g3"),
+		"4k3/3p4/2B1p3/8/1q6/4R3/3P4/4K3 w - - 0 0": algebraicToIndexFatal("d2"), // diagonal pawns
+		"4k3/3p4/2B1p3/8/1q6/4R3/3P4/4K3 b - - 0 0": algebraicToIndexFatal("e6"),
+		"4k3/8/8/8/1q6/2Q5/8/4K3 w - - 0 0":         algebraicToIndexFatal("c3"),
+		"4k3/8/4r3/4Q3/1q6/2Q5/8/4K3 w - - 0 0":     algebraicToIndexFatal("c3"), // TODO: only checks one of two pins
+		"4k3/8/2p5/8/B7/6q1/5N2/4K3 w - - 0 0":      algebraicToIndexFatal("f2"),
+		"4k3/8/2p5/8/B7/6q1/5N2/4K3 b - - 0 0":      algebraicToIndexFatal("c6"),
+		"4k3/8/6p1/3b3Q/2P5/1K6/8/8 w - - 0 0":      algebraicToIndexFatal("c4"),
+		"4k3/8/6p1/3b3Q/2P5/1K6/8/8 b - - 0 0":      algebraicToIndexFatal("g6"),
+		"4k3/8/8/b7/7q/6P1/8/4K3 w - - 0 0":         algebraicToIndexFatal("g3"),
 	}
 	for k, v := range positions {
 		moves := make([]Move, 0, 45)
@@ -311,7 +311,7 @@ func TestDiagPins(t *testing.T) {
 
 func TestTrickyCornerCases(t *testing.T) {
 	positions := map[string]int{
-		"8/8/8/8/k1Pp3Q/8/8/2K5 b - c3 0 0": 5, // e.p. capture into check
+		"8/8/8/8/k1Pp3Q/8/8/2K5 b - c3 0 0":  5, // e.p. capture into check
 		"8/8/8/8/1kPp4/8/8/2K1B3 b - c3 0 0": 6, // e.p. breaks check
 	}
 	for k, v := range positions {
@@ -341,15 +341,15 @@ func TestOrthoPins(t *testing.T) {
 		"2q1k3/8/2R5/8/2K4r/8/8/8 w - - 0 0":    3, // test pin while in check
 	}
 	pinLocs := map[string]uint8{
-		"4k3/8/4r3/4Q3/1q6/2Q5/8/4K3 b - - 0 0": AlgebraicToIndex("e6"),
+		"4k3/8/4r3/4Q3/1q6/2Q5/8/4K3 b - - 0 0": algebraicToIndexFatal("e6"),
 		"7k/8/8/8/1r2R3/8/8/4K3 w - - 0 0":      64, // "false pin"
 		"7k/8/8/8/1r2R3/8/8/4K3 b - - 0 0":      64, // no pin at all
-		"3k4/8/3n4/8/8/8/3Q4/7K b - - 0 0":      AlgebraicToIndex("d6"),
-		"8/8/1r3QK1/3QQ3/8/kr6/8/8 w - - 0 0":   AlgebraicToIndex("f6"),
-		"4k3/4p3/8/8/8/4R3/q2PK3/8 w - - 0 0":   AlgebraicToIndex("d2"), // horizontal
-		"4k3/4p3/8/8/8/4R3/q2PK3/8 b - - 0 0":   AlgebraicToIndex("e7"),
-		"8/4k3/8/4p3/8/4R3/q2PK3/8 b - - 0 0":   AlgebraicToIndex("e5"),
-		"2q1k3/8/2R5/8/2K4r/8/8/8 w - - 0 0":    AlgebraicToIndex("c6"),
+		"3k4/8/3n4/8/8/8/3Q4/7K b - - 0 0":      algebraicToIndexFatal("d6"),
+		"8/8/1r3QK1/3QQ3/8/kr6/8/8 w - - 0 0":   algebraicToIndexFatal("f6"),
+		"4k3/4p3/8/8/8/4R3/q2PK3/8 w - - 0 0":   algebraicToIndexFatal("d2"), // horizontal
+		"4k3/4p3/8/8/8/4R3/q2PK3/8 b - - 0 0":   algebraicToIndexFatal("e7"),
+		"8/4k3/8/4p3/8/4R3/q2PK3/8 b - - 0 0":   algebraicToIndexFatal("e5"),
+		"2q1k3/8/2R5/8/2K4r/8/8/8 w - - 0 0":    algebraicToIndexFatal("c6"),
 	}
 	for k, v := range positions {
 		moves := make([]Move, 0, 45)
@@ -373,9 +373,9 @@ func TestCountAttacks(t *testing.T) {
 	b := ParseFen("3B4/8/1k4Rq/P1pP1P2/8/2p5/3K3r/1n2b3 w - c6 0 0")
 	b2 := ParseFen("3B4/8/1k4Rq/P1pP1P2/8/2p5/3K3r/1n2b3 b - - 0 0")
 	numAttacks, blockerDestinations := b.countAttacks(
-		true, AlgebraicToIndex("d2"), 1000) // on white king
+		true, algebraicToIndexFatal("d2"), 1000) // on white king
 	numAttacks2, blockerDestinations2 := b2.countAttacks(
-		false, AlgebraicToIndex("b6"), 1000)
+		false, algebraicToIndexFatal("b6"), 1000)
 	if numAttacks != 5 || numAttacks2 != 3 ||
 		blockerDestinations != 0x80402014F012 || blockerDestinations2 != 0x8047C0100000000 {
 		t.Error("Attack counting failed.")

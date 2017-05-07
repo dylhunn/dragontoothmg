@@ -19,6 +19,7 @@ Here is a summary of the important files in the repo:
 | types.go     | This file contains the Board and Moves types, along with some supporting helper functions and types.                                                 |
 | constants.go | All constants for move generation are hard-coded here, along with functions to compute the magic bitboard lookup tables when the file loads.         |
 | util.go      | This file contains supporting library functions, for FEN reading and conversions.                                                                    |
+| apply.go     | This provides functions to apply and unapply moves to the board. (Useful for Perft as well.)                                                         |
 
 **This project is currently a prototype.** It works, although optimizations are underway.
 

@@ -79,11 +79,11 @@ type bitboards struct {
 // Move bitwise structure; internal implementation is private.
 type Move uint16
 
-func (m *Move) To() Square {
-	return Square(*m & 0x3F)
+func (m *Move) To() uint8 {
+	return uint8(*m & 0x3F)
 }
-func (m *Move) From() Square {
-	return Square((*m & 0xFC0) >> 6)
+func (m *Move) From() uint8 {
+	return uint8((*m & 0xFC0) >> 6)
 }
 
 // Whether the move involves promoting a pawn.
@@ -104,7 +104,7 @@ func (m *Move) Setpromote(p Piece) *Move {
 }
 func (m *Move) String() string {
 	return fmt.Sprintf("[from: %v, to: %v, promote: %v]",
-		IndexToAlgebraic(m.From()), IndexToAlgebraic(m.To()), m.Promote())
+		IndexToAlgebraic(Square(m.From())), IndexToAlgebraic(Square(m.To())), m.Promote())
 }
 
 // Square index values from 0-63.

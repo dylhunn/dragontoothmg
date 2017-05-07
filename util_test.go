@@ -4,20 +4,45 @@ import (
 	"testing"
 )
 
+// Some example valid move strings:
+// e1e2 b4d6 e7e8q a2a1n
+func TestParseMove(t *testing.T) {
+	move, _ := ParseMove("b4d6")
+	if move.To() != algebraicToIndexFatal("d6") ||
+		move.From() != algebraicToIndexFatal("b4") ||
+		move.Promote() != Nothing {
+		t.Error("Incorrectly parsed move.")
+	}
+	move2, _ := ParseMove("a2a1n")
+	if move2.To() != algebraicToIndexFatal("a1") ||
+		move2.From() != algebraicToIndexFatal("a2") ||
+		move2.Promote() != Knight {
+		t.Error("Incorrectly parsed move.")
+	}
+}
+
 func TestAlgToIdx(t *testing.T) {
-	if AlgebraicToIndex("A8") != 56 {
+	if algebraicToIndexFatal("A8") != 56 {
 		t.Error("Algebraic to index conversion failed.")
 	}
-	if AlgebraicToIndex("A1") != 0 {
+	if algebraicToIndexFatal("A1") != 0 {
 		t.Error("Algebraic to index conversion failed.")
 	}
-	if AlgebraicToIndex("h3") != 23 {
+	if algebraicToIndexFatal("h3") != 23 {
 		t.Error("Algebraic to index conversion failed.")
 	}
-	if AlgebraicToIndex("a6") != 40 {
+	if algebraicToIndexFatal("a6") != 40 {
 		t.Error("Algebraic to index conversion failed.")
 	}
-	if AlgebraicToIndex("H4") != 31 {
+	if algebraicToIndexFatal("H4") != 31 {
+		t.Error("Algebraic to index conversion failed.")
+	}
+	_, err := AlgebraicToIndex("H9")
+	if err == nil {
+		t.Error("Algebraic to index conversion failed.")
+	}
+	_, err2 := AlgebraicToIndex("qq")
+	if err2 == nil {
 		t.Error("Algebraic to index conversion failed.")
 	}
 }

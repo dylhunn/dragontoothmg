@@ -25,26 +25,37 @@ func (b *Board) Apply(m Move) func() {
 	var flippedKsCastle, flippedQsCastle bool
 
 	// Configure castling rights
-	if pieceType == King && m.To()-m.From() == 2 { // castle short
-		castleStatus = 1
-		oldRookLoc = m.To() + 1
-		newRookLoc = m.To() - 1
-		b.flipKingsideCastle()
-		if queensideCastleRightsBefore {
-			b.flipQueensideCastle()
-			flippedQsCastle = true
-		}
-		flippedKsCastle = true
-	} else if pieceType == King && int(m.To())-int(m.From()) == -2 { // castle long
-		castleStatus = -1
-		oldRookLoc = m.To() - 2
-		newRookLoc = m.To() + 1
-		b.flipQueensideCastle()
-		if kingsideCastleRightsBefore {
+	if pieceType == King {
+		if m.To()-m.From() == 2 { // castle short
+			castleStatus = 1
+			oldRookLoc = m.To() + 1
+			newRookLoc = m.To() - 1
 			b.flipKingsideCastle()
+			if queensideCastleRightsBefore {
+				b.flipQueensideCastle()
+				flippedQsCastle = true
+			}
 			flippedKsCastle = true
+		} else if int(m.To())-int(m.From()) == -2 { // castle long
+			castleStatus = -1
+			oldRookLoc = m.To() - 2
+			newRookLoc = m.To() + 1
+			b.flipQueensideCastle()
+			if kingsideCastleRightsBefore {
+				b.flipKingsideCastle()
+				flippedKsCastle = true
+			}
+			flippedQsCastle = true
+		} else { // an ordinary non-castling king movement
+			if (kingsideCastleRightsBefore) {
+				b.flipKingsideCastle()
+				flippedKsCastle = true
+			}
+			if (queensideCastleRightsBefore) {
+				b.flipQueensideCastle()
+				flippedQsCastle = true
+			}
 		}
-		flippedQsCastle = true
 	}
 	// Apply the castling rook movement
 	if castleStatus != 0 {
@@ -66,7 +77,7 @@ func (b *Board) Apply(m Move) func() {
 
 	// Is this an e.p. capture? Strip the opponent pawn and reset the e.p. square
 	epCaptureSquare := b.enpassant
-	if epCaptureSquare != 0 {
+	if pieceType == Pawn && m.To() == epCaptureSquare && epCaptureSquare != 0 {
 		oppBitboardPtr.pawns &= ^(uint64(1) << uint8(int8(epCaptureSquare)+epDelta))
 		oppBitboardPtr.all &= ^(uint64(1) << uint8(int8(epCaptureSquare)+epDelta))
 	}

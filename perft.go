@@ -4,23 +4,23 @@ import "fmt"
 
 // Run perft to count the number of moves.
 // Useful for testing and benchmarking.
-func Perft(b *Board, n int) int {
+func Perft(b *Board, n int) int64 {
 	if n <= 0 {
 		return 1
 	}
 	moves := b.GenerateLegalMoves()
 	if n == 1 {
-		return len(moves)
+		return int64(len(moves))
 	}
-	var count int = 0
-	
+	var count int64 = 0
+
 	for _, move := range moves {
 		unapply := b.Apply(move)
 		count += Perft(b, n-1)
 		unapply()
 
 	}
-	return count
+	return int64(count)
 }
 
 // Performs the Perft move count division operation. Useful for debugging.

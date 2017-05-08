@@ -4,13 +4,13 @@ import (
 	"testing"
 )
 
-func testDivide(t *testing.T) {
+func TestDivide(t *testing.T) {
 	//b := ParseFen("rnbqkbnr/1ppppppp/p7/P7/8/8/1PPPPPPP/RNBQKBNR b KQkq - 0 1") // my b7b5 finds 21 instead of 22 moves
-	b := ParseFen("rnbqkbnr/ppp1pppp/4Q3/8/4p3/8/PPPP1PPP/RNB1KBNR b KQkq - 0 3")
+	b := ParseFen(startpos)
 	Divide(&b, 1)
 }
 
-func TestStartingPosition(t *testing.T) {
+func testStartingPosition(t *testing.T) {
 	b := ParseFen(startpos)
 	perftSolutions := map[int]int64{
 		1: 20,

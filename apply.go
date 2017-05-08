@@ -60,7 +60,9 @@ func (b *Board) Apply(m Move) func() {
 	// Apply the castling rook movement
 	if castleStatus != 0 {
 		ourBitboardPtr.rooks |= (uint64(1) << newRookLoc)
+		ourBitboardPtr.all |= (uint64(1) << newRookLoc)
 		ourBitboardPtr.rooks &= ^(uint64(1) << oldRookLoc)
+		ourBitboardPtr.all &= ^(uint64(1) << oldRookLoc)
 	}
 
 	// Rook moves strip castling rights
@@ -127,7 +129,9 @@ func (b *Board) Apply(m Move) func() {
 		}
 		if castleStatus != 0 {
 			ourBitboardPtr.rooks &= ^(uint64(1) << newRookLoc)
+			ourBitboardPtr.all &= ^(uint64(1) << newRookLoc)
 			ourBitboardPtr.rooks |= (uint64(1) << oldRookLoc)
+			ourBitboardPtr.all |= (uint64(1) << oldRookLoc)
 		}
 		b.enpassant = epCaptureSquare
 		if epCaptureSquare != 0 {

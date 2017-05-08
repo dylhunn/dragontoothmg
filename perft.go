@@ -13,12 +13,10 @@ func Perft(b *Board, n int) int64 {
 		return int64(len(moves))
 	}
 	var count int64 = 0
-
 	for _, move := range moves {
 		unapply := b.Apply(move)
 		count += Perft(b, n-1)
 		unapply()
-
 	}
 	return int64(count)
 }
@@ -26,10 +24,10 @@ func Perft(b *Board, n int) int64 {
 // Performs the Perft move count division operation. Useful for debugging.
 func Divide(b *Board, n int) {
 	moves := b.GenerateLegalMoves()
-	for i, move := range moves {
+	for _, move := range moves {
 		unapply := b.Apply(move)
 		result := Perft(b, n-1)
 		unapply()
-		fmt.Printf("Move   #%3d:   %-6s =%9d\n", i+1, &move, result)
+		fmt.Printf( /*"Move   #%3d:   "*/ "%-6s =%9d\n" /*i+1, */, &move, result)
 	}
 }

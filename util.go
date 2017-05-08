@@ -14,6 +14,15 @@ func parseMove(movestr string) Move {
 	return res
 }
 
+func (b *bitboards) sanityCheck() {
+	if b.all != b.pawns | b.knights | b.bishops | b.rooks | b.kings | b.queens {
+		fmt.Println("Bitboard sanity check problem.")
+	}
+	if ((((((b.all ^ b.pawns) ^ b.knights) ^ b.bishops) ^ b.rooks) ^ b.kings) ^ b.queens) != 0 {
+		fmt.Println("Bitboard sanity check problem.")
+	}
+}
+
 // Some example valid move strings:
 // e1e2 b4d6 e7e8q a2a1n
 func ParseMove(movestr string) (Move, error) {
@@ -98,6 +107,8 @@ func IndexToAlgebraic(id Square) string {
 
 // Serializes a board position to a Fen string.
 func (b *Board) ToFen() string {
+	b.white.sanityCheck()
+	b.black.sanityCheck()
 	var position string
 	var empty int // empty slots
 	for i := 63; i >= 0; i-- {

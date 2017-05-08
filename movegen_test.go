@@ -386,7 +386,7 @@ func TestCountAttacks(t *testing.T) {
 }
 
 func testBugCases(t *testing.T) {
-	b := ParseFen("4k3/3p4/2B1p3/8/1q6/4R3/3P4/4K3 b - - 0 0")
+	b := ParseFen("r3k2r/p1ppqpb1/bn2pnp1/3PN3/4P3/1pN2Q1p/PPPBBPPP/R4RK1 w kq - 0 2")
 	moves := b.GenerateLegalMoves()
 	for i, v := range moves {
 		fmt.Println(i, &v)
@@ -397,7 +397,8 @@ func testBugCases(t *testing.T) {
 // An incomplete, yet giant, test suite of positions. Tests legal move generation.
 func TestLegalMoves(t *testing.T) {
 	positions := map[string]int{
-		"rnbq1bnr/pppppkpp/5p2/8/2B5/4PQ2/PPPP1PPP/RNB1K1NR b KQkq - 0 0":      4, // pinned while in check; pinned piece can't move
+		"r3k2r/p1ppqpb1/bn2pnp1/3PN3/4P3/1pN2Q1p/PPPBBPPP/R4RK1 w kq - 0 2":    49, // buggy rook move gen position, soln verified with stockfish
+		"rnbq1bnr/pppppkpp/5p2/8/2B5/4PQ2/PPPP1PPP/RNB1K1NR b KQkq - 0 0":      4,  // pinned while in check; pinned piece can't move
 		"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1":             20,
 		"r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1": 48,
 		"4k3/8/8/8/8/8/8/4K2R w K - 0 1":                                       15,
@@ -529,10 +530,11 @@ func TestLegalMoves(t *testing.T) {
 		moves := b.GenerateLegalMoves()
 		fenafter := b.ToFen()
 		if fenbefore != fenafter {
-			t.Error("En passant case corrupted board state.")
+			t.Error("Move generation corrupted board state.")
 		}
 		if len(moves) != v {
 			t.Error("Legal moves: wrong length. Expected", v, "but got", len(moves), "for position", b.ToFen())
+			printMoves(moves)
 		}
 	}
 }

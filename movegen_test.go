@@ -231,7 +231,7 @@ func TestPinnedBishop(t *testing.T) {
 	for k, v := range positions {
 		moves := make([]Move, 0, 45)
 		b := ParseFen(k)
-		b.generatePinnedMoves(&moves)
+		b.generatePinnedMoves(&moves, everything)
 		if len(moves) != v {
 			t.Error("Legal moves for pinned bishops: wrong length. Expected", v, "but got", len(moves), "for position", b.ToFen())
 		}
@@ -246,7 +246,7 @@ func TestPinnedKnight(t *testing.T) {
 	for k, v := range positions {
 		moves := make([]Move, 0, 45)
 		b := ParseFen(k)
-		b.generatePinnedMoves(&moves)
+		b.generatePinnedMoves(&moves, everything)
 		if len(moves) != v {
 			t.Error("Legal moves for pinned bishops: wrong length. Expected", v, "but got", len(moves), "for position", b.ToFen())
 		}
@@ -261,7 +261,7 @@ func TestPinnedQueen(t *testing.T) {
 	for k, v := range positions {
 		moves := make([]Move, 0, 45)
 		b := ParseFen(k)
-		b.generatePinnedMoves(&moves)
+		b.generatePinnedMoves(&moves, everything)
 		if len(moves) != v {
 			t.Error("Legal moves for pinned bishops: wrong length. Expected", v, "but got", len(moves), "for position", b.ToFen())
 		}
@@ -294,7 +294,7 @@ func TestDiagPins(t *testing.T) {
 	for k, v := range positions {
 		moves := make([]Move, 0, 45)
 		b := ParseFen(k)
-		result := b.generatePinnedMoves(&moves)
+		result := b.generatePinnedMoves(&moves, everything)
 		if len(moves) != v {
 			t.Error("Legal moves for diagonal pins: wrong length. Expected", v, "but got", len(moves), "for position", b.ToFen())
 		}
@@ -339,7 +339,7 @@ func TestOrthoPins(t *testing.T) {
 		"4k3/4p3/8/8/8/4R3/q2PK3/8 w - - 0 0":                          0, // horizontal pawn*/
 		"4k3/4p3/8/8/8/4R3/q2PK3/8 b - - 0 0":                          2,
 		"8/4k3/8/4p3/8/4R3/q2PK3/8 b - - 0 0":                          1,
-		"2q1k3/8/2R5/8/2K4r/8/8/8 w - - 0 0":                           3,  // test pin while in check
+		"2q1k3/8/2R5/8/2K4r/8/8/8 w - - 0 0":                           3, // test pin while in check
 		"rnbqkbnr/ppp1pppp/4Q3/8/4p3/8/PPPP1PPP/RNB1KBNR b KQkq - 0 3": 0, // pawn is pinned
 	}
 	pinLocs := map[string]uint8{
@@ -357,7 +357,7 @@ func TestOrthoPins(t *testing.T) {
 	for k, v := range positions {
 		moves := make([]Move, 0, 45)
 		b := ParseFen(k)
-		result := b.generatePinnedMoves(&moves)
+		result := b.generatePinnedMoves(&moves, everything)
 		if len(moves) != v {
 			t.Error("Legal moves for orthogonal pins: wrong length. Expected", v, "but got", len(moves), "for position", b.ToFen())
 			printMoves(moves)
@@ -397,6 +397,7 @@ func testBugCases(t *testing.T) {
 // An incomplete, yet giant, test suite of positions. Tests legal move generation.
 func TestLegalMoves(t *testing.T) {
 	positions := map[string]int{
+		"rnbq1bnr/pppppkpp/5p2/8/2B5/4PQ2/PPPP1PPP/RNB1K1NR b KQkq - 0 0":      4, // pinned while in check; pinned piece can't move
 		"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1":             20,
 		"r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1": 48,
 		"4k3/8/8/8/8/8/8/4K2R w K - 0 1":                                       15,

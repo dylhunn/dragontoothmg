@@ -31,12 +31,11 @@ func (b *Board) GenerateLegalMoves() []Move {
 		return moves
 	}
 
-	// Then, calculate all the absolutely pinned pieces, and compute their moves.
-	pinnedPieces := b.generatePinnedMoves(&moves)
-	nonpinnedPieces := ^pinnedPieces
-
 	// Several move types can work in single check, but we must block the check
 	if kingAttackers == 1 {
+		// calculate pinned pieces
+		pinnedPieces := b.generatePinnedMoves(&moves, blockerDestinations)
+		nonpinnedPieces := ^pinnedPieces
 		// TODO
 		b.pawnPushes(&moves, nonpinnedPieces, blockerDestinations)
 		b.pawnCaptures(&moves, nonpinnedPieces, blockerDestinations)
@@ -47,6 +46,11 @@ func (b *Board) GenerateLegalMoves() []Move {
 		b.kingPushes(&moves, ourPiecesPtr)
 		return moves
 	}
+
+	// Then, calculate all the absolutely pinned pieces, and compute their moves.
+	// If we are in check, we can only move to squares that block the check.
+	pinnedPieces := b.generatePinnedMoves(&moves, everything)
+	nonpinnedPieces := ^pinnedPieces
 
 	// Finally, compute ordinary moves, ignoring absolutely pinned pieces on the board.
 	b.pawnPushes(&moves, nonpinnedPieces, everything)
@@ -60,8 +64,9 @@ func (b *Board) GenerateLegalMoves() []Move {
 }
 
 // Calculate the available moves for absolutely pinned pieces (pinned to the king).
+// We are only allowed to move to squares in allowDest, to block checks.
 // Return a bitboard of all pieces that are pinned.
-func (b *Board) generatePinnedMoves(moveList *[]Move) uint64 {
+func (b *Board) generatePinnedMoves(moveList *[]Move, allowDest uint64) uint64 {
 	var ourKingIdx uint8
 	var ourPieces, oppPieces *bitboards
 	var allPinnedPieces uint64 = 0
@@ -108,10 +113,11 @@ func (b *Board) generatePinnedMoves(moveList *[]Move) uint64 {
 				//printBitboard(pawnPushesSingle)
 				//pawnTargets := (pawnPushesSingle | pawnPushesDouble) & onlyFile[pinnedPieceIdx%8]
 				var pawnTargets uint64 = 0
-				pawnTargets |= (1 << uint8(int(pinnedPieceIdx) + 8*pawnPushDirection)) & ^allPieces
-				if (pawnTargets != 0) { // single push worked; try double
-					pawnTargets |= (1 << uint8(int(pinnedPieceIdx) + 16*pawnPushDirection)) & ^allPieces & doublePushRank
+				pawnTargets |= (1 << uint8(int(pinnedPieceIdx)+8*pawnPushDirection)) & ^allPieces
+				if pawnTargets != 0 { // single push worked; try double
+					pawnTargets |= (1 << uint8(int(pinnedPieceIdx)+16*pawnPushDirection)) & ^allPieces & doublePushRank
 				}
+				pawnTargets &= allowDest
 				genMovesFromTargets(moveList, Square(pinnedPieceIdx), pawnTargets)
 			}
 			continue
@@ -124,6 +130,7 @@ func (b *Board) generatePinnedMoves(moveList *[]Move) uint64 {
 		pinnedPieceAllMoves := calculateRookMoveBitboard(pinnedPieceIdx, allPieces) & (^(ourPieces.all))
 		// actually available moves
 		pinnedTargets := pinnedPieceAllMoves & (rookTargets | kingOrthoTargets | (uint64(1) << currRookIdx))
+		pinnedTargets &= allowDest
 		genMovesFromTargets(moveList, Square(pinnedPieceIdx), pinnedTargets)
 	}
 
@@ -147,13 +154,17 @@ func (b *Board) generatePinnedMoves(moveList *[]Move) uint64 {
 		if bishopToPinnedSlope != bishopToKingSlope { // just an intersection, not a pin
 			continue
 		}
-		allPinnedPieces |= pinnedPiece        // store pinned piece
-		if pinnedPiece&ourPieces.pawns != 0 { // it's a pawn; we might be able to capture with it
-			if (b.wtomove && (pinnedPieceIdx/8)+1 == currBishopIdx/8) ||
-				(!b.wtomove && pinnedPieceIdx/8 == (currBishopIdx/8)+1) {
-				var move Move
-				move.Setfrom(Square(pinnedPieceIdx)).Setto(Square(currBishopIdx))
-				*moveList = append(*moveList, move)
+		allPinnedPieces |= pinnedPiece // store pinned piece
+		// if it's a pawn we might be able to capture with it
+		// the capture square must also be in allowdest
+		if pinnedPiece&ourPieces.pawns != 0 {
+			if (uint64(1)<<currBishopIdx)&allowDest != 0 {
+				if (b.wtomove && (pinnedPieceIdx/8)+1 == currBishopIdx/8) ||
+					(!b.wtomove && pinnedPieceIdx/8 == (currBishopIdx/8)+1) {
+					var move Move
+					move.Setfrom(Square(pinnedPieceIdx)).Setto(Square(currBishopIdx))
+					*moveList = append(*moveList, move)
+				}
 			}
 			continue
 		}
@@ -165,6 +176,7 @@ func (b *Board) generatePinnedMoves(moveList *[]Move) uint64 {
 		pinnedPieceAllMoves := calculateBishopMoveBitboard(pinnedPieceIdx, allPieces) & (^(ourPieces.all))
 		// actually available moves
 		pinnedTargets := pinnedPieceAllMoves & (bishopTargets | kingDiagTargets | (uint64(1) << currBishopIdx))
+		pinnedTargets &= allowDest
 		genMovesFromTargets(moveList, Square(pinnedPieceIdx), pinnedTargets)
 	}
 	return allPinnedPieces

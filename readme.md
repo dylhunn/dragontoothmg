@@ -30,15 +30,15 @@ This project requires Go 1.9. As of the time of writing, 1.9 is still a pre-rele
 
 To use this package in your own code, make sure your `GO_PATH` environment variable is correctly set, and install it using `go get`:
 
-    go get github.com/dylhunn/dragontooth-movegen
+    go get github.com/dylhunn/dragontoothmg
 
 Then, you can include it in your project:
 
-	import "github.com/dylhunn/dragontooth-movegen"
+	import "github.com/dylhunn/dragontoothmg"
 
 Alternatively, you can clone it yourself:
 
-    git clone https://github.com/dylhunn/dragontooth-movegen.git
+    git clone https://github.com/dylhunn/dragontooth-mg.git
 
 
 Documentation and examples

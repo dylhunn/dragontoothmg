@@ -13,10 +13,12 @@ func Perft(b *Board, n int) int {
 		return len(moves)
 	}
 	var count int = 0
+	
 	for _, move := range moves {
 		unapply := b.Apply(move)
 		count += Perft(b, n-1)
 		unapply()
+
 	}
 	return count
 }

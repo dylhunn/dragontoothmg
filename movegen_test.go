@@ -3,6 +3,7 @@ package dragontoothmg
 import (
 	"math/bits"
 	"testing"
+	//"fmt"
 )
 
 func TestPawnPushes(t *testing.T) {
@@ -380,6 +381,14 @@ func TestCountAttacks(t *testing.T) {
 		blockerDestinations != 0x80402014F012 || blockerDestinations2 != 0x8047C0100000000 {
 		t.Error("Attack counting failed.")
 	}
+}
+
+func TestNoKingCapture(t *testing.T) {
+	/*b := ParseFen("rnbqkbnr/ppp1pppp/8/8/8/8/PPP1PPPP/RNBQKBNR b kq -")
+	moves := b.GenerateLegalMoves()
+	for i, v := range moves {
+		fmt.Println(i, &v)
+	}*/
 }
 
 // An incomplete, yet giant, test suite of positions. Tests legal move generation.

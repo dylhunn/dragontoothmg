@@ -69,6 +69,11 @@ func (b *Board) Apply(m Move) func() {
 	if epCaptureSquare != 0 {
 		oppBitboardPtr.pawns &= ^(uint64(1) << uint8(int8(epCaptureSquare)+epDelta))
 		oppBitboardPtr.all &= ^(uint64(1) << uint8(int8(epCaptureSquare)+epDelta))
+	}
+	// Update the en passant square
+	if pieceType == Pawn && (int8(m.To())+2*epDelta == int8(m.From())) { // pawn double push
+		b.enpassant = uint8(int8(m.To()) + epDelta)
+	} else {
 		b.enpassant = 0
 	}
 
@@ -88,11 +93,11 @@ func (b *Board) Apply(m Move) func() {
 	}
 
 	// Apply the move
+	capturedPieceType, capturedBitboard := determinePieceType(oppBitboardPtr, toBitboard)
 	ourBitboardPtr.all &= ^fromBitboard // remove at "from"
 	ourBitboardPtr.all |= toBitboard    // add at "to"
 	*pieceTypeBitboard &= ^fromBitboard // remove at "from"
 	*destTypeBitboard |= toBitboard     // add at "to"
-	capturedPieceType, capturedBitboard := determinePieceType(oppBitboardPtr, toBitboard)
 	if capturedPieceType != Nothing {
 		*capturedBitboard &= ^toBitboard
 		oppBitboardPtr.all &= ^toBitboard
@@ -113,8 +118,8 @@ func (b *Board) Apply(m Move) func() {
 			ourBitboardPtr.rooks &= ^(uint64(1) << newRookLoc)
 			ourBitboardPtr.rooks |= (uint64(1) << oldRookLoc)
 		}
+		b.enpassant = epCaptureSquare
 		if epCaptureSquare != 0 {
-			b.enpassant = epCaptureSquare
 			oppBitboardPtr.pawns |= (uint64(1) << uint8(int8(epCaptureSquare)+epDelta))
 			oppBitboardPtr.all |= (uint64(1) << uint8(int8(epCaptureSquare)+epDelta))
 		}

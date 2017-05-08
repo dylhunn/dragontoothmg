@@ -1,6 +1,6 @@
 [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](http://www.gnu.org/licenses/gpl-3.0)
 ![Build Status](http://img.shields.io/travis/dylhunn/dragontooth-movegen.svg)
-[![Documentation](https://img.shields.io/badge/Documentation-GoDoc-green.svg)](https://godoc.org/github.com/dylhunn/dragontooth-movegen)
+[![Documentation](https://img.shields.io/badge/Documentation-GoDoc-green.svg)](https://godoc.org/github.com/dylhunn/dragontoothmg)
 
 
 Dragontooth Movegen | Dylan D. Hunn
@@ -47,7 +47,7 @@ To run all tests and benchmarks, `cd` into the directory and use:
 Documentation and examples
 ==========================
 
-You can find the documentation [here](https://godoc.org/github.com/dylhunn/dragontooth-movegen).
+You can find the documentation [here](https://godoc.org/github.com/dylhunn/dragontoothmg).
 
 Here is a simple example invocation:
 

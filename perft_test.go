@@ -10,7 +10,7 @@ func testDivide(t *testing.T) {
 	Divide(&b, 1)
 }
 
-func TestStartingPosition(t *testing.T) {
+func testStartingPosition(t *testing.T) {
 	b := ParseFen(startpos)
 	perftSolutions := map[int]int{
 		1: 20,

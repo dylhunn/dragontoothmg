@@ -55,10 +55,10 @@ func (b *Board) Apply(m Move) func() {
 	// Rook moves strip castling rights
 	if pieceType == Rook {
 		originBitboard := uint64(1) << m.From()
-		if b.canCastleKingside() && (originBitboard & onlyFile[7] != 0) { // king's rook
+		if b.canCastleKingside() && (originBitboard&onlyFile[7] != 0) { // king's rook
 			flippedKsCastle = true
 			b.flipKingsideCastle()
-		} else if b.canCastleQueenside() && (originBitboard & onlyFile[0] != 0) { // queen's rook
+		} else if b.canCastleQueenside() && (originBitboard&onlyFile[0] != 0) { // queen's rook
 			flippedQsCastle = true
 			b.flipQueensideCastle()
 		}
@@ -66,9 +66,9 @@ func (b *Board) Apply(m Move) func() {
 
 	// Is this an e.p. capture? Strip the opponent pawn and reset the e.p. square
 	epCaptureSquare := b.enpassant
-	if (epCaptureSquare != 0) {
-		oppBitboardPtr.pawns &= ^(uint64(1) << uint8(int8(epCaptureSquare) + epDelta))
-		oppBitboardPtr.all &= ^(uint64(1) << uint8(int8(epCaptureSquare) + epDelta))
+	if epCaptureSquare != 0 {
+		oppBitboardPtr.pawns &= ^(uint64(1) << uint8(int8(epCaptureSquare)+epDelta))
+		oppBitboardPtr.all &= ^(uint64(1) << uint8(int8(epCaptureSquare)+epDelta))
 		b.enpassant = 0
 	}
 
@@ -91,7 +91,7 @@ func (b *Board) Apply(m Move) func() {
 	ourBitboardPtr.all &= ^fromBitboard // remove at "from"
 	ourBitboardPtr.all |= toBitboard    // add at "to"
 	*pieceTypeBitboard &= ^fromBitboard // remove at "from"
-	*destTypeBitboard |= toBitboard    // add at "to"
+	*destTypeBitboard |= toBitboard     // add at "to"
 	capturedPieceType, capturedBitboard := determinePieceType(oppBitboardPtr, toBitboard)
 	if capturedPieceType != Nothing {
 		*capturedBitboard &= ^toBitboard
@@ -101,9 +101,9 @@ func (b *Board) Apply(m Move) func() {
 
 	// Return the unapply function (closure)
 	unapply := func() {
-		ourBitboardPtr.all &= ^toBitboard // remove at "to"
+		ourBitboardPtr.all &= ^toBitboard  // remove at "to"
 		ourBitboardPtr.all |= fromBitboard // add at "from"
-		*destTypeBitboard &= ^toBitboard // remove at "to"
+		*destTypeBitboard &= ^toBitboard   // remove at "to"
 		*pieceTypeBitboard |= fromBitboard // add at "from"
 		if capturedPieceType != Nothing {
 			*capturedBitboard |= toBitboard
@@ -113,10 +113,10 @@ func (b *Board) Apply(m Move) func() {
 			ourBitboardPtr.rooks &= ^(uint64(1) << newRookLoc)
 			ourBitboardPtr.rooks |= (uint64(1) << oldRookLoc)
 		}
-		if (epCaptureSquare != 0) {
+		if epCaptureSquare != 0 {
 			b.enpassant = epCaptureSquare
-			oppBitboardPtr.pawns |= (uint64(1) << uint8(int8(epCaptureSquare) + epDelta))
-			oppBitboardPtr.all |= (uint64(1) << uint8(int8(epCaptureSquare) + epDelta))
+			oppBitboardPtr.pawns |= (uint64(1) << uint8(int8(epCaptureSquare)+epDelta))
+			oppBitboardPtr.all |= (uint64(1) << uint8(int8(epCaptureSquare)+epDelta))
 		}
 		if b.wtomove {
 			b.fullmoveno-- // decrement after undoing black's move

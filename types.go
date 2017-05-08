@@ -1,9 +1,5 @@
 package dragontoothmg
 
-import (
-	"fmt"
-)
-
 // Each bitboard shall use little-endian rank-file mapping:
 // 56  57  58  59  60  61  62  63
 // 48  49  50  51  52  53  54  55
@@ -131,8 +127,21 @@ func (m *Move) Setpromote(p Piece) *Move {
 	return m
 }
 func (m *Move) String() string {
-	return fmt.Sprintf("[from: %v, to: %v, promote: %v]",
-		IndexToAlgebraic(Square(m.From())), IndexToAlgebraic(Square(m.To())), m.Promote())
+	/*return fmt.Sprintf("[from: %v, to: %v, promote: %v]",
+	IndexToAlgebraic(Square(m.From())), IndexToAlgebraic(Square(m.To())), m.Promote())*/
+	result := IndexToAlgebraic(Square(m.From())) + IndexToAlgebraic(Square(m.To()))
+	switch m.Promote() {
+	case Queen:
+		result += "q"
+	case Knight:
+		result += "n"
+	case Rook:
+		result += "r"
+	case Bishop:
+		result += "b"
+	default:
+	}
+	return result
 }
 
 // Square index values from 0-63.

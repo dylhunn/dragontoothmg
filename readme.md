@@ -38,8 +38,11 @@ Then, you can include it in your project:
 
 Alternatively, you can clone it yourself:
 
-    git clone https://github.com/dylhunn/dragontooth-mg.git
+    git clone https://github.com/dylhunn/dragontoothmg.git
 
+To run all tests and benchmarks, `cd` into the directory and use:
+
+	go test -bench=
 
 Documentation and examples
 ==========================

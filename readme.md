@@ -42,7 +42,7 @@ Alternatively, you can clone it yourself:
 
 To run all tests and benchmarks, `cd` into the directory and use:
 
-	go test -bench=
+	go test -bench=.
 
 Documentation and examples
 ==========================

@@ -1,9 +1,9 @@
 package dragontoothmg
 
 import (
+	"fmt"
 	"math/bits"
 	"testing"
-	//"fmt"
 )
 
 func TestPawnPushes(t *testing.T) {
@@ -331,26 +331,28 @@ func TestTrickyCornerCases(t *testing.T) {
 
 func TestOrthoPins(t *testing.T) {
 	positions := map[string]int{
-		"4k3/8/4r3/4Q3/1q6/2Q5/8/4K3 b - - 0 0": 2,
-		"7k/8/8/8/1r2R3/8/8/4K3 w - - 0 0":      0, // "false pin"
-		"7k/8/8/8/1r2R3/8/8/4K3 b - - 0 0":      0, // no pin at all
-		"3k4/8/3n4/8/8/8/3Q4/7K b - - 0 0":      0, // knight pin
-		"8/8/1r3QK1/3QQ3/8/kr6/8/8 w - - 0 0":   4, // queen pin
-		"4k3/4p3/8/8/8/4R3/q2PK3/8 w - - 0 0":   0, // horizontal pawn*/
-		"4k3/4p3/8/8/8/4R3/q2PK3/8 b - - 0 0":   2,
-		"8/4k3/8/4p3/8/4R3/q2PK3/8 b - - 0 0":   1,
-		"2q1k3/8/2R5/8/2K4r/8/8/8 w - - 0 0":    3, // test pin while in check
+		"4k3/8/4r3/4Q3/1q6/2Q5/8/4K3 b - - 0 0":                        2,
+		"7k/8/8/8/1r2R3/8/8/4K3 w - - 0 0":                             0, // "false pin"
+		"7k/8/8/8/1r2R3/8/8/4K3 b - - 0 0":                             0, // no pin at all
+		"3k4/8/3n4/8/8/8/3Q4/7K b - - 0 0":                             0, // knight pin
+		"8/8/1r3QK1/3QQ3/8/kr6/8/8 w - - 0 0":                          4, // queen pin
+		"4k3/4p3/8/8/8/4R3/q2PK3/8 w - - 0 0":                          0, // horizontal pawn*/
+		"4k3/4p3/8/8/8/4R3/q2PK3/8 b - - 0 0":                          2,
+		"8/4k3/8/4p3/8/4R3/q2PK3/8 b - - 0 0":                          1,
+		"2q1k3/8/2R5/8/2K4r/8/8/8 w - - 0 0":                           3,  // test pin while in check
+		"rnbqkbnr/ppp1pppp/4Q3/8/4p3/8/PPPP1PPP/RNB1KBNR b KQkq - 0 3": 0, // pawn is pinned
 	}
 	pinLocs := map[string]uint8{
-		"4k3/8/4r3/4Q3/1q6/2Q5/8/4K3 b - - 0 0": algebraicToIndexFatal("e6"),
-		"7k/8/8/8/1r2R3/8/8/4K3 w - - 0 0":      64, // "false pin"
-		"7k/8/8/8/1r2R3/8/8/4K3 b - - 0 0":      64, // no pin at all
-		"3k4/8/3n4/8/8/8/3Q4/7K b - - 0 0":      algebraicToIndexFatal("d6"),
-		"8/8/1r3QK1/3QQ3/8/kr6/8/8 w - - 0 0":   algebraicToIndexFatal("f6"),
-		"4k3/4p3/8/8/8/4R3/q2PK3/8 w - - 0 0":   algebraicToIndexFatal("d2"), // horizontal
-		"4k3/4p3/8/8/8/4R3/q2PK3/8 b - - 0 0":   algebraicToIndexFatal("e7"),
-		"8/4k3/8/4p3/8/4R3/q2PK3/8 b - - 0 0":   algebraicToIndexFatal("e5"),
-		"2q1k3/8/2R5/8/2K4r/8/8/8 w - - 0 0":    algebraicToIndexFatal("c6"),
+		"4k3/8/4r3/4Q3/1q6/2Q5/8/4K3 b - - 0 0":                        algebraicToIndexFatal("e6"),
+		"7k/8/8/8/1r2R3/8/8/4K3 w - - 0 0":                             64, // "false pin"
+		"7k/8/8/8/1r2R3/8/8/4K3 b - - 0 0":                             64, // no pin at all
+		"3k4/8/3n4/8/8/8/3Q4/7K b - - 0 0":                             algebraicToIndexFatal("d6"),
+		"8/8/1r3QK1/3QQ3/8/kr6/8/8 w - - 0 0":                          algebraicToIndexFatal("f6"),
+		"4k3/4p3/8/8/8/4R3/q2PK3/8 w - - 0 0":                          algebraicToIndexFatal("d2"), // horizontal
+		"4k3/4p3/8/8/8/4R3/q2PK3/8 b - - 0 0":                          algebraicToIndexFatal("e7"),
+		"8/4k3/8/4p3/8/4R3/q2PK3/8 b - - 0 0":                          algebraicToIndexFatal("e5"),
+		"2q1k3/8/2R5/8/2K4r/8/8/8 w - - 0 0":                           algebraicToIndexFatal("c6"),
+		"rnbqkbnr/ppp1pppp/4Q3/8/4p3/8/PPPP1PPP/RNB1KBNR b KQkq - 0 3": algebraicToIndexFatal("e7"), // pawn is pinned with double pawn in file
 	}
 	for k, v := range positions {
 		moves := make([]Move, 0, 45)
@@ -383,12 +385,13 @@ func TestCountAttacks(t *testing.T) {
 	}
 }
 
-func TestNoKingCapture(t *testing.T) {
-	/*b := ParseFen("rnbqkbnr/ppp1pppp/8/8/8/8/PPP1PPPP/RNBQKBNR b kq -")
+func testBugCases(t *testing.T) {
+	b := ParseFen("4k3/3p4/2B1p3/8/1q6/4R3/3P4/4K3 b - - 0 0")
 	moves := b.GenerateLegalMoves()
 	for i, v := range moves {
 		fmt.Println(i, &v)
-	}*/
+	}
+	fmt.Println(len(moves), "moves")
 }
 
 // An incomplete, yet giant, test suite of positions. Tests legal move generation.

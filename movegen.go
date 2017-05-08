@@ -7,8 +7,8 @@ package dragontoothmg
 // (The exception is a few one-line helpers for Move and Board in types.go)
 
 import (
-	"math/bits"
 	//"fmt"
+	"math/bits"
 )
 
 // The main API entrypoint. Generates all legal moves for a given board.
@@ -65,14 +65,20 @@ func (b *Board) generatePinnedMoves(moveList *[]Move) uint64 {
 	var ourKingIdx uint8
 	var ourPieces, oppPieces *bitboards
 	var allPinnedPieces uint64 = 0
+	var pawnPushDirection int
+	var doublePushRank uint64
 	if b.wtomove { // Assumes only one king on the board
 		ourKingIdx = uint8(bits.TrailingZeros64(b.white.kings))
 		ourPieces = &(b.white)
 		oppPieces = &(b.black)
+		pawnPushDirection = 1
+		doublePushRank = onlyRank[3]
 	} else {
 		ourKingIdx = uint8(bits.TrailingZeros64(b.black.kings))
 		ourPieces = &(b.black)
 		oppPieces = &(b.white)
+		pawnPushDirection = -1
+		doublePushRank = onlyRank[4]
 	}
 	allPieces := oppPieces.all | ourPieces.all
 
@@ -98,8 +104,14 @@ func (b *Board) generatePinnedMoves(moveList *[]Move) uint64 {
 		allPinnedPieces |= pinnedPiece        // store the pinned piece location
 		if pinnedPiece&ourPieces.pawns != 0 { // it's a pawn; we might be able to push it
 			if sameFile { // push the pawn
-				pawnPushesSingle, pawnPushesDouble := b.pawnPushBitboards(everything)
-				pawnTargets := (pawnPushesSingle | pawnPushesDouble) & onlyFile[pinnedPieceIdx%8]
+				//pawnPushesSingle, pawnPushesDouble := b.pawnPushBitboards(everything)
+				//printBitboard(pawnPushesSingle)
+				//pawnTargets := (pawnPushesSingle | pawnPushesDouble) & onlyFile[pinnedPieceIdx%8]
+				var pawnTargets uint64 = 0
+				pawnTargets |= (1 << uint8(int(pinnedPieceIdx) + 8*pawnPushDirection)) & ^allPieces
+				if (pawnTargets != 0) { // single push worked; try double
+					pawnTargets |= (1 << uint8(int(pinnedPieceIdx) + 16*pawnPushDirection)) & ^allPieces & doublePushRank
+				}
 				genMovesFromTargets(moveList, Square(pinnedPieceIdx), pawnTargets)
 			}
 			continue
@@ -204,13 +216,11 @@ func (b *Board) pawnPushBitboards(nonpinned uint64) (targets uint64, doubleTarge
 	if b.wtomove {
 		movableWhitePawns := b.white.pawns & nonpinned
 		targets = movableWhitePawns << 8 & free
-		fourthFile := uint64(0xFF000000)
-		doubleTargets = targets << 8 & fourthFile & free
+		doubleTargets = targets << 8 & onlyRank[3] & free
 	} else {
 		movableBlackPawns := b.black.pawns & nonpinned
 		targets = movableBlackPawns >> 8 & free
-		fifthFile := uint64(0xFF00000000)
-		doubleTargets = targets >> 8 & fifthFile & free
+		doubleTargets = targets >> 8 & onlyRank[4] & free
 	}
 	return
 }

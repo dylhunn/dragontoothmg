@@ -6,7 +6,7 @@ import (
 
 func testDivide(t *testing.T) {
 	//b := ParseFen("rnbqkbnr/1ppppppp/p7/P7/8/8/1PPPPPPP/RNBQKBNR b KQkq - 0 1") // my b7b5 finds 21 instead of 22 moves
-	b := ParseFen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
+	b := ParseFen("rnbqkbnr/ppp1pppp/4Q3/8/4p3/8/PPPP1PPP/RNB1KBNR b KQkq - 0 3")
 	Divide(&b, 1)
 }
 

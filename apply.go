@@ -47,11 +47,11 @@ func (b *Board) Apply(m Move) func() {
 			}
 			flippedQsCastle = true
 		} else { // an ordinary non-castling king movement
-			if (kingsideCastleRightsBefore) {
+			if kingsideCastleRightsBefore {
 				b.flipKingsideCastle()
 				flippedKsCastle = true
 			}
-			if (queensideCastleRightsBefore) {
+			if queensideCastleRightsBefore {
 				b.flipQueensideCastle()
 				flippedQsCastle = true
 			}

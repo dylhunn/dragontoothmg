@@ -48,6 +48,20 @@ func (b *Board) blackCanCastleQueenside() bool {
 func (b *Board) blackCanCastleKingside() bool {
 	return (b.castlerights&0x8)>>3 == 1
 }
+func (b *Board) canCastleQueenside() bool {
+	if b.wtomove {
+		return b.whiteCanCastleQueenside()
+	} else {
+		return b.blackCanCastleQueenside()
+	}
+}
+func (b *Board) canCastleKingside() bool {
+	if b.wtomove {
+		return b.whiteCanCastleKingside()
+	} else {
+		return b.blackCanCastleKingside()
+	}
+}
 func (b *Board) flipWhiteQueensideCastle() {
 	b.castlerights = b.castlerights ^ (1)
 }
@@ -59,6 +73,20 @@ func (b *Board) flipBlackQueensideCastle() {
 }
 func (b *Board) flipBlackKingsideCastle() {
 	b.castlerights = b.castlerights ^ (1 << 3)
+}
+func (b *Board) flipQueensideCastle() {
+	if b.wtomove {
+		b.flipWhiteQueensideCastle()
+	} else {
+		b.flipBlackQueensideCastle()
+	}
+}
+func (b *Board) flipKingsideCastle() {
+	if b.wtomove {
+		b.flipWhiteKingsideCastle()
+	} else {
+		b.flipBlackKingsideCastle()
+	}
 }
 
 type bitboards struct {

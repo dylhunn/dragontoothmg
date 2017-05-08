@@ -4,9 +4,18 @@ import (
 	"testing"
 )
 
-func testApplyUnapply(t *testing.T) {
+func TestApplyUnapply(t *testing.T) {
 	movesMap := map[string]Move{
+		// ordinary move
 		"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 0": parseMove("e2e4"),
+		// castle 1
+		// castle 2
+		// en passant capture
+		// promotion 1
+		// promotion 2
+		// promotion-capture
+		// capture 1
+		// capture
 	}
 	results := map[string]string{
 		"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 0": "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 0",

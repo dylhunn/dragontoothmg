@@ -71,19 +71,21 @@ func (b *Board) generatePinnedMoves(moveList *[]Move, allowDest uint64) uint64 {
 	var ourPieces, oppPieces *bitboards
 	var allPinnedPieces uint64 = 0
 	var pawnPushDirection int
-	var doublePushRank uint64
+	var doublePushRank, ourPromotionRank uint64
 	if b.wtomove { // Assumes only one king on the board
 		ourKingIdx = uint8(bits.TrailingZeros64(b.white.kings))
 		ourPieces = &(b.white)
 		oppPieces = &(b.black)
 		pawnPushDirection = 1
 		doublePushRank = onlyRank[3]
+		ourPromotionRank = onlyRank[7]
 	} else {
 		ourKingIdx = uint8(bits.TrailingZeros64(b.black.kings))
 		ourPieces = &(b.black)
 		oppPieces = &(b.white)
 		pawnPushDirection = -1
 		doublePushRank = onlyRank[4]
+		ourPromotionRank = onlyRank[0]
 	}
 	allPieces := oppPieces.all | ourPieces.all
 
@@ -114,7 +116,7 @@ func (b *Board) generatePinnedMoves(moveList *[]Move, allowDest uint64) uint64 {
 				if pawnTargets != 0 { // single push worked; try double
 					pawnTargets |= (1 << uint8(int(pinnedPieceIdx)+16*pawnPushDirection)) & ^allPieces & doublePushRank
 				}
-				pawnTargets &= allowDest
+				pawnTargets &= allowDest // TODO this might be a promotion. Is that possible?
 				genMovesFromTargets(moveList, Square(pinnedPieceIdx), pawnTargets)
 			}
 			continue
@@ -158,9 +160,17 @@ func (b *Board) generatePinnedMoves(moveList *[]Move, allowDest uint64) uint64 {
 			if (uint64(1)<<currBishopIdx)&allowDest != 0 {
 				if (b.wtomove && (pinnedPieceIdx/8)+1 == currBishopIdx/8) ||
 					(!b.wtomove && pinnedPieceIdx/8 == (currBishopIdx/8)+1) {
-					var move Move
-					move.Setfrom(Square(pinnedPieceIdx)).Setto(Square(currBishopIdx))
-					*moveList = append(*moveList, move)
+					if ((uint64(1)<<currBishopIdx)&ourPromotionRank) != 0 { // We get to promote!
+						for i := Piece(Knight); i <= Queen; i++ {
+							var move Move 
+							move.Setfrom(Square(pinnedPieceIdx)).Setto(Square(currBishopIdx)).Setpromote(i)
+							*moveList = append(*moveList, move)
+						}
+					} else { // no promotion
+						var move Move 
+						move.Setfrom(Square(pinnedPieceIdx)).Setto(Square(currBishopIdx))
+						*moveList = append(*moveList, move)
+					}
 				}
 			}
 			continue

@@ -5,16 +5,11 @@ import (
 )
 
 func testDivide(t *testing.T) {
-	//b := ParseFen("rnbqkbnr/1ppppppp/p7/P7/8/8/1PPPPPPP/RNBQKBNR b KQkq - 0 1") // my b7b5 finds 21 instead of 22 moves
-	//b := ParseFen("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 0")
-	//b := ParseFen("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 0")
-	b := ParseFen("r3k2r/p1ppqpb1/1n2pnp1/1b1PN3/4P3/p1N2Q1p/1PPBBPPP/R4RK1 w kq - 0 0")
-
-	//b := ParseFen("r3k2r/p1ppqpb1/bn2pnp1/3PN3/4P3/1pN2Q1p/PPPBBPPP/R4RK1 w kq - 0 1")
+	b := ParseFen("nqn5/P1Pk4/8/8/8/6K1/7p/5N2 w - - 0 1")
 	Divide(&b, 1)
 }
 
-func testStartingPosition(t *testing.T) {
+func TestStartingPosition(t *testing.T) {
 	perftSolutions := map[int]int64{
 		1: 20,
 		2: 400,
@@ -26,7 +21,7 @@ func testStartingPosition(t *testing.T) {
 	checkPerftResults(startpos, perftSolutions, t)
 }
 
-func testKiwipetePosition(t *testing.T) {
+func TestKiwipetePosition(t *testing.T) {
 	perftSolutions := map[int]int64{
 		1: 48,
 		2: 2039,
@@ -38,7 +33,7 @@ func testKiwipetePosition(t *testing.T) {
 	checkPerftResults(pos, perftSolutions, t)
 }
 
-func testEndgameRP(t *testing.T) {
+func TestEndgameRP(t *testing.T) {
 	perftSolutions := map[int]int64{
 		1: 14,
 		2: 191,
@@ -52,7 +47,7 @@ func testEndgameRP(t *testing.T) {
 	checkPerftResults(pos, perftSolutions, t)
 }
 
-func testMidgameDense(t *testing.T) {
+func TestMidgameDense(t *testing.T) {
 	perftSolutions := map[int]int64{
 		1: 6,
 		2: 264,
@@ -65,7 +60,7 @@ func testMidgameDense(t *testing.T) {
 	checkPerftResults(pos, perftSolutions, t)
 }
 
-func testPromotions(t *testing.T) {
+func TestPromotions(t *testing.T) {
 	perftSolutions := map[int]int64{
 		1: 24,
 		2: 496,
@@ -84,7 +79,7 @@ func checkPerftResults(fen string, perftSolutions map[int]int64, t *testing.T) {
 		beforeFen := b.ToFen()
 		result := Perft(&b, i)
 		afterFen := b.ToFen()
-		if (beforeFen != afterFen) {
+		if beforeFen != afterFen {
 			t.Error("Perft corrupted board state.")
 		}
 		if result != perftSolutions[i] {

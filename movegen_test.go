@@ -397,7 +397,8 @@ func testBugCases(t *testing.T) {
 // An incomplete, yet giant, test suite of positions. Tests legal move generation.
 func TestLegalMoves(t *testing.T) {
 	positions := map[string]int{
-		"r3k2r/p1ppqpb1/1n2pnp1/1b1PN3/4P3/p1N2Q1p/1PPBBPPP/R4RK1 w kq - 0 0": 50, // spooky action bug (missing g1h1)
+		"nqn5/P1Pk4/8/8/8/6K1/7p/5N2 w - - 0 0": 19, // double promotion on the same square; capture to release a pin
+		"r3k2r/p1ppqpb1/1n2pnp1/1b1PN3/4P3/p1N2Q1p/1PPBBPPP/R4RK1 w kq - 0 0":  50, // spooky action bug (missing g1h1)
 		"r3k2r/Pppp1ppp/1b3nbN/1PP5/BB2P3/qP3N2/1p1P2PP/R2Q1RK1 b kq - 0 0":    38, // buggy double capture position
 		"r3k2r/p1ppqpb1/bn2pnp1/3PN3/4P3/1pN2Q1p/PPPBBPPP/R4RK1 w kq - 0 2":    49, // buggy rook move gen position, soln verified with stockfish
 		"rnbq1bnr/pppppkpp/5p2/8/2B5/4PQ2/PPPP1PPP/RNB1K1NR b KQkq - 0 0":      4,  // pinned while in check; pinned piece can't move

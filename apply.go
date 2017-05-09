@@ -4,15 +4,20 @@ package dragontoothmg
 func (b *Board) Apply(m Move) func() {
 	// Configure data about which pieces move
 	var ourBitboardPtr, oppBitboardPtr *bitboards
-	var epDelta int8 // add this to the e.p. square to find the captured pawn
+	var epDelta int8                                // add this to the e.p. square to find the captured pawn
+	var oppStartingRankBb, ourStartingRankBb uint64 // the starting rank of out opponent's major pieces
 	if b.wtomove {
 		ourBitboardPtr = &(b.white)
 		oppBitboardPtr = &(b.black)
 		epDelta = -8
+		oppStartingRankBb = onlyRank[7]
+		ourStartingRankBb = onlyRank[0]
 	} else {
 		ourBitboardPtr = &(b.black)
 		oppBitboardPtr = &(b.white)
 		epDelta = 8
+		oppStartingRankBb = onlyRank[0]
+		ourStartingRankBb = onlyRank[7]
 		b.fullmoveno++ // increment after black's move
 	}
 	fromBitboard := (uint64(1) << m.From())
@@ -67,11 +72,10 @@ func (b *Board) Apply(m Move) func() {
 
 	// Rook moves strip castling rights
 	if pieceType == Rook {
-		originBitboard := fromBitboard
-		if b.canCastleKingside() && (originBitboard&onlyFile[7] != 0) { // king's rook
+		if b.canCastleKingside() && (fromBitboard&onlyFile[7] != 0) && fromBitboard&ourStartingRankBb != 0 { // king's rook
 			flippedKsCastle = true
 			b.flipKingsideCastle()
-		} else if b.canCastleQueenside() && (originBitboard&onlyFile[0] != 0) { // queen's rook
+		} else if b.canCastleQueenside() && (fromBitboard&onlyFile[0] != 0) && fromBitboard&ourStartingRankBb != 0 { // queen's rook
 			flippedQsCastle = true
 			b.flipQueensideCastle()
 		}
@@ -118,10 +122,10 @@ func (b *Board) Apply(m Move) func() {
 
 	// If a rook was captured, it strips castling rights
 	if capturedPieceType == Rook {
-		if b.oppCanCastleKingside() && m.To()%8 == 7 { // captured king rook
+		if b.oppCanCastleKingside() && m.To()%8 == 7 && toBitboard&oppStartingRankBb != 0 { // captured king rook
 			b.flipOppKingsideCastle()
 			flippedOppKsCastle = true
-		} else if b.oppCanCastleQueenside() && m.To()%8 == 0 { // queen rooks
+		} else if b.oppCanCastleQueenside() && m.To()%8 == 0 && toBitboard&oppStartingRankBb != 0 { // queen rooks
 			b.flipOppQueensideCastle()
 			flippedOppQsCastle = true
 		}

@@ -41,13 +41,22 @@ Alternatively, you can clone it yourself:
 
     git clone https://github.com/dylhunn/dragontoothmg.git
 
+Testing and benchmarking
+========================
+
 To run all tests, `cd` into the directory and use:
 
 	go test -v
 
-The `-v` shows verbose progress output, since some of the Perft tests can take some time. To run benchmarks:
+The `-v` shows verbose progress output, since some of the Perft tests can take some time.
+
+To run benchmarks:
 
 	go run bench/runbench.go
+
+Current benchmark results are around 60 million NPS on a modern Intel i5. This will vary on your machine.
+
+![Sample Benchmark Results](/benchmarks.png?raw=true "Sample Benchmark Results")
 
 Documentation and examples
 ==========================

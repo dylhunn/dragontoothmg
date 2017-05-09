@@ -2,14 +2,13 @@ package dragontoothmg
 
 import (
 	"testing"
+	"fmt"
+	"time"
 )
 
-func BenchmarkStartpos(b *testing.B) {
-	board := ParseFen(startpos)
-	for i := 0; i < b.N; i++ {
-		Perft(&board, 5)
-	}
-}
+// -----
+// TESTS
+// -----
 
 func testDivide(t *testing.T) {
 	b := ParseFen("nqn5/P1Pk4/8/8/8/6K1/7p/5N2 w - - 0 1")

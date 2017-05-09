@@ -2,3 +2,7 @@ language: go
 
 go:
   - master
+
+os:
+  - linux
+  - osx

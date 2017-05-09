@@ -56,10 +56,10 @@ You can find the documentation [here](https://godoc.org/github.com/dylhunn/drago
 
 Here is a simple example invocation:
 
-    board := movegen.ParseFen("1Q2rk2/2p2p2/1n4b1/N7/2B1Pp1q/2B4P/1QPP4/4K2R b K e3 4 30")
+    board := dragontoothmg.ParseFen("1Q2rk2/2p2p2/1n4b1/N7/2B1Pp1q/2B4P/1QPP4/4K2R b K e3 4 30")
     moveList := board.GenerateLegalMoves()
     for _, curr := range moveList {
-    	unapply := board.Apply(curr)
-    	fmt.Println("Moved to: %v", dragontoothmg.IndexToAlgebraic(curr.To()))
-    	unapply()
+        unapply := board.Apply(curr)
+        fmt.Println("Moved to:", dragontoothmg.IndexToAlgebraic(dragontoothmg.Square(curr.To())))
+        unapply()
     }

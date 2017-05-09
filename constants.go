@@ -157,7 +157,7 @@ func bishopMovesFromBlockers(origin Square, blockers uint64) uint64 {
 }
 
 // The starting position FEN
-const startpos = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+const Startpos = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 
 const kDefaultMoveListLength int = 45
 

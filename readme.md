@@ -41,13 +41,13 @@ Alternatively, you can clone it yourself:
 
     git clone https://github.com/dylhunn/dragontoothmg.git
 
-To run all tests and benchmarks, `cd` into the directory and use:
+To run all tests, `cd` into the directory and use:
 
-	go test -v -bench=.
+	go test -v
 
-The `-v` shows verbose progress output, since some of the Perft tests can take some time. To just run benchmarks
+The `-v` shows verbose progress output, since some of the Perft tests can take some time. To run benchmarks:
 
-	go test -run=nothing -bench=.
+	go run bench/runbench.go
 
 Documentation and examples
 ==========================

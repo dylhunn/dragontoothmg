@@ -2,8 +2,6 @@ package dragontoothmg
 
 import (
 	"testing"
-	"fmt"
-	"time"
 )
 
 // -----
@@ -25,7 +23,7 @@ func TestStartingPosition(t *testing.T) {
 		5: 4865609,
 		6: 119060324,
 	}
-	checkPerftResults(startpos, perftSolutions, t)
+	checkPerftResults(Startpos, perftSolutions, t)
 }
 
 func TestKiwipetePosition(t *testing.T) {

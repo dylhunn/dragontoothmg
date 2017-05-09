@@ -15,7 +15,7 @@ func main() {
 	printResultLine(testing.Benchmark(benchmarkStartpos5), "Start position", startposResult5, 5)
 	printResultLine(testing.Benchmark(benchmarkStartpos6), "Start position", startposResult6, 6)
 	printResultLine(testing.Benchmark(benchmarkKiwipete), "Kiwipete position", kpResult, 5)
-	printResultLine(testing.Benchmark(benchmarkDense), "Dense position", denseResult, 5)
+	printResultLine(testing.Benchmark(benchmarkDense), "Dense position", denseResult, 6)
 	printResultLine(testing.Benchmark(benchmarkEndgameRP), "Endgame R/P position", endgameResult, 6)
 	fmt.Println()
 }
@@ -61,7 +61,7 @@ func benchmarkDense(b *testing.B) {
 	pos := "r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq - 0 1"
 	board := dragontoothmg.ParseFen(pos)
 	for i := 0; i < b.N; i++ {
-		denseResult = dragontoothmg.Perft(&board, 5)
+		denseResult = dragontoothmg.Perft(&board, 6)
 	}
 }
 

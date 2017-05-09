@@ -159,7 +159,7 @@ func bishopMovesFromBlockers(origin Square, blockers uint64) uint64 {
 // The starting position FEN
 const Startpos = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 
-const kDefaultMoveListLength int = 45
+const kDefaultMoveListLength int = 65
 
 // Bitboard where every bit is active
 var everything uint64 = ^(uint64(0))

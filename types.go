@@ -58,6 +58,20 @@ func (b *Board) canCastleKingside() bool {
 		return b.blackCanCastleKingside()
 	}
 }
+func (b *Board) oppCanCastleQueenside() bool {
+	if b.wtomove {
+		return b.blackCanCastleQueenside()
+	} else {
+		return b.whiteCanCastleQueenside()
+	}
+}
+func (b *Board) oppCanCastleKingside() bool {
+	if b.wtomove {
+		return b.blackCanCastleKingside()
+	} else {
+		return b.whiteCanCastleKingside()
+	}
+}
 func (b *Board) flipWhiteQueensideCastle() {
 	b.castlerights = b.castlerights ^ (1)
 }
@@ -82,6 +96,20 @@ func (b *Board) flipKingsideCastle() {
 		b.flipWhiteKingsideCastle()
 	} else {
 		b.flipBlackKingsideCastle()
+	}
+}
+func (b *Board) flipOppQueensideCastle() {
+	if b.wtomove {
+		b.flipBlackQueensideCastle()
+	} else {
+		b.flipWhiteQueensideCastle()
+	}
+}
+func (b *Board) flipOppKingsideCastle() {
+	if b.wtomove {
+		b.flipBlackKingsideCastle()
+	} else {
+		b.flipWhiteKingsideCastle()
 	}
 }
 

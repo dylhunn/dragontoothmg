@@ -22,7 +22,7 @@ func (b *Board) Apply(m Move) func() {
 	var oldRookLoc, newRookLoc uint8
 	kingsideCastleRightsBefore := b.canCastleKingside()
 	queensideCastleRightsBefore := b.canCastleQueenside()
-	var flippedKsCastle, flippedQsCastle bool
+	var flippedKsCastle, flippedQsCastle, flippedOppKsCastle, flippedOppQsCastle bool
 
 	// Configure castling rights
 	if pieceType == King {
@@ -67,7 +67,7 @@ func (b *Board) Apply(m Move) func() {
 
 	// Rook moves strip castling rights
 	if pieceType == Rook {
-		originBitboard := uint64(1) << m.From()
+		originBitboard := fromBitboard
 		if b.canCastleKingside() && (originBitboard&onlyFile[7] != 0) { // king's rook
 			flippedKsCastle = true
 			b.flipKingsideCastle()
@@ -115,6 +115,18 @@ func (b *Board) Apply(m Move) func() {
 		*capturedBitboard &= ^toBitboard
 		oppBitboardPtr.all &= ^toBitboard
 	}
+
+	// If a rook was captured, it strips castling rights
+	if capturedPieceType == Rook {
+		if b.oppCanCastleKingside() && m.To()%8 == 7 { // captured king rook
+			b.flipOppKingsideCastle()
+			flippedOppKsCastle = true
+		} else if b.oppCanCastleQueenside() && m.To()%8 == 0 { // queen rooks
+			b.flipOppQueensideCastle()
+			flippedOppQsCastle = true
+		}
+	}
+
 	b.wtomove = !b.wtomove
 
 	// Return the unapply function (closure)
@@ -149,7 +161,12 @@ func (b *Board) Apply(m Move) func() {
 		if flippedQsCastle {
 			b.flipQueensideCastle()
 		}
-
+		if flippedOppKsCastle {
+			b.flipOppKingsideCastle()
+		}
+		if flippedOppQsCastle {
+			b.flipOppQueensideCastle()
+		}
 	}
 	return unapply
 }

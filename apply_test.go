@@ -37,6 +37,10 @@ func TestApplyUnapply(t *testing.T) {
 		"rnbqkbnr/ppp1pppp/8/3p4/8/8/PPP1PPPP/RNBQKBNR w KQkq d6 0 2": parseMove("e1d2"),
 		// castling in kiwipete
 		"r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 0": parseMove("e1c1"),
+		// a buggy position
+		"r3k3/p1ppqpb1/bn2pnpr/3PN3/1p2P3/5Q1p/PPPBBPPP/RN2K2R w KQq - 0 0": parseMove("d2h6"),
+		// castling bug
+		"r3k2r/p1ppqpb1/1n2pnp1/1b1PN3/1p2P3/P1N2Q1p/1PPBBPPP/R3K2R w KQkq - 0 0": parseMove("e1g1"),
 	}
 	results := map[string]string{
 		"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 0":             "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 0",
@@ -54,6 +58,8 @@ func TestApplyUnapply(t *testing.T) {
 		"rnbqkbnr/ppp1pppp/8/3p4/8/8/PPP1PPPP/RNBQKBNR w KQkq - 0 2":           "rnbqkbnr/ppp1pppp/8/3p4/8/8/PPPKPPPP/RNBQ1BNR b kq - 0 2",
 		"rnbqkbnr/ppp1pppp/8/3p4/8/8/PPP1PPPP/RNBQKBNR w KQkq d6 0 2":          "rnbqkbnr/ppp1pppp/8/3p4/8/8/PPPKPPPP/RNBQ1BNR b kq - 0 2",
 		"r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 0": "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/2KR3R b kq - 0 0",
+		"r3k3/p1ppqpb1/bn2pnpr/3PN3/1p2P3/5Q1p/PPPBBPPP/RN2K2R w KQq - 0 0":    "r3k3/p1ppqpb1/bn2pnpB/3PN3/1p2P3/5Q1p/PPP1BPPP/RN2K2R b KQq - 0 0",
+		"r3k2r/p1ppqpb1/1n2pnp1/1b1PN3/1p2P3/P1N2Q1p/1PPBBPPP/R3K2R w KQkq - 0 0": "r3k2r/p1ppqpb1/1n2pnp1/1b1PN3/1p2P3/P1N2Q1p/1PPBBPPP/R4RK1 b kq - 0 0",
 	}
 	for k, v := range movesMap {
 		b := ParseFen(k)

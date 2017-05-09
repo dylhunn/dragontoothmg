@@ -109,9 +109,6 @@ func (b *Board) generatePinnedMoves(moveList *[]Move, allowDest uint64) uint64 {
 		allPinnedPieces |= pinnedPiece        // store the pinned piece location
 		if pinnedPiece&ourPieces.pawns != 0 { // it's a pawn; we might be able to push it
 			if sameFile { // push the pawn
-				//pawnPushesSingle, pawnPushesDouble := b.pawnPushBitboards(everything)
-				//printBitboard(pawnPushesSingle)
-				//pawnTargets := (pawnPushesSingle | pawnPushesDouble) & onlyFile[pinnedPieceIdx%8]
 				var pawnTargets uint64 = 0
 				pawnTargets |= (1 << uint8(int(pinnedPieceIdx)+8*pawnPushDirection)) & ^allPieces
 				if pawnTargets != 0 { // single push worked; try double
@@ -263,7 +260,7 @@ func (b *Board) pawnCaptures(moveList *[]Move, nonpinned uint64, allowDest uint6
 				move.Setfrom(Square(target + (9 - (dir * 2))))
 				canPromote = target <= 7
 			}
-			if uint8(target) == b.enpassant {
+			if uint8(target) == b.enpassant && b.enpassant != 0 {
 				// Apply, check actual legality, then unapply
 				// Warning: not thread safe
 				var ourPieces, oppPieces *bitboards
@@ -359,8 +356,7 @@ func (b *Board) kingPushes(moveList *[]Move, ptrToOurBitboards *bitboards) {
 	// checking slider.
 	oldKings := ptrToOurBitboards.kings
 	ptrToOurBitboards.kings = 0
-	ptrToOurBitboards.all &= ^(1 << ourKingLocation)
-
+	ptrToOurBitboards.all &= ^(uint64(1) << ourKingLocation)
 	targets := kingMasks[ourKingLocation] & noFriendlyPieces
 	for targets != 0 {
 		target := bits.TrailingZeros64(targets)
@@ -595,21 +591,21 @@ func (b *Board) countAttacks(byBlack bool, origin uint8, abortEarly int) (int, u
 		return numAttacks, blockerDestinations
 	}
 	// find attacking pawns
-	var pawn_attackers uint64 = 0
+	var pawn_attackers_mask uint64 = 0
 	if byBlack {
-		pawn_attackers = 1 << (origin + 7)
-		pawn_attackers |= 1 << (origin + 9)
+		pawn_attackers_mask = (1 << (origin + 7)) & ^(onlyFile[7])
+		pawn_attackers_mask |= (1 << (origin + 9)) & ^(onlyFile[0])
 	} else {
 		if origin-7 >= 0 {
-			pawn_attackers = 1 << (origin - 7)
+			pawn_attackers_mask = (1 << (origin - 7)) & ^(onlyFile[0])
 		}
 		if origin-9 >= 0 {
-			pawn_attackers |= 1 << (origin - 9)
+			pawn_attackers_mask |= (1 << (origin - 9)) & ^(onlyFile[7])
 		}
 	}
-	pawn_attackers &= opponentPieces.pawns
-	numAttacks += bits.OnesCount64(pawn_attackers)
-	blockerDestinations |= pawn_attackers
+	pawn_attackers_mask &= opponentPieces.pawns
+	numAttacks += bits.OnesCount64(pawn_attackers_mask)
+	blockerDestinations |= pawn_attackers_mask
 	if numAttacks >= abortEarly {
 		return numAttacks, blockerDestinations
 	}

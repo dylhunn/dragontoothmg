@@ -15,7 +15,7 @@ func parseMove(movestr string) Move {
 }
 
 func (b *bitboards) sanityCheck() {
-	if b.all != b.pawns | b.knights | b.bishops | b.rooks | b.kings | b.queens {
+	if b.all != b.pawns|b.knights|b.bishops|b.rooks|b.kings|b.queens {
 		fmt.Println("Bitboard sanity check problem.")
 	}
 	if ((((((b.all ^ b.pawns) ^ b.knights) ^ b.bishops) ^ b.rooks) ^ b.kings) ^ b.queens) != 0 {

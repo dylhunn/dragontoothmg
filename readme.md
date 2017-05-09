@@ -22,7 +22,7 @@ Here is a summary of the important files in the repo:
 | apply.go     | This provides functions to apply and unapply moves to the board. (Useful for Perft as well.)                                                         |
 | perft.go     | The actual Perft implementation is contained in this file.                                                                                           |
 
-**This project is currently a prototype.** It works, although optimizations are underway.
+**This project is currently fully functional.** Optimizations are underway.
 
 Installing and building the library
 ===================================

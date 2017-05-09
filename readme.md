@@ -20,6 +20,7 @@ Here is a summary of the important files in the repo:
 | constants.go | All constants for move generation are hard-coded here, along with functions to compute the magic bitboard lookup tables when the file loads.         |
 | util.go      | This file contains supporting library functions, for FEN reading and conversions.                                                                    |
 | apply.go     | This provides functions to apply and unapply moves to the board. (Useful for Perft as well.)                                                         |
+| perft.go     | The actual Perft implementation is contained in this file.                                                                                           |
 
 **This project is currently a prototype.** It works, although optimizations are underway.
 
@@ -42,7 +43,9 @@ Alternatively, you can clone it yourself:
 
 To run all tests and benchmarks, `cd` into the directory and use:
 
-	go test -bench=.
+	go test -v -bench=.
+
+The `-v` shows verbose progress output, since some of the Perft tests can take some time.
 
 Documentation and examples
 ==========================

@@ -5,7 +5,10 @@ import (
 )
 
 func BenchmarkStartpos(b *testing.B) {
-	Perft
+	board := ParseFen(startpos)
+	for i := 0; i < b.N; i++ {
+		Perft(&board, 5)
+	}
 }
 
 func testDivide(t *testing.T) {

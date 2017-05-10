@@ -56,7 +56,7 @@ To run benchmarks:
 
 	go run bench/runbench.go
 
-Current benchmark results are around 60 million NPS (nodes per second) on a modern Intel i5. This is about 35-40% of the perormance of the Stockfish move generator. (Not bad for a garbage-collected language!) Improvements are continually underway, and results will vary on your machine.
+Current benchmark results are around 60 million NPS (nodes per second) on a modern Intel i5. This is about 35-40% of the performance of the Stockfish move generator. (Not bad for a garbage-collected language!) Improvements are continually underway, and results will vary on your machine.
 
 ![Sample Benchmark Results](/benchmarks.png?raw=true "Sample Benchmark Results")
 

@@ -2,6 +2,7 @@ package dragontoothmg
 
 import (
 	"math/bits"
+	"math/rand"
 )
 
 // Initialize the magic lookups tables
@@ -14,6 +15,19 @@ func init() {
 	}
 	generateRookMagicTable()
 	generateBishopMagicTable()
+	generateZobristConstants()
+}
+
+func generateZobristConstants() {
+	whiteToMoveZobristC = rand.Uint64()
+	for i := 0; i < 12; i++ {
+		for j := 0; j < 64; j++ {
+			pieceSquareZobristC[i][j] = rand.Uint64()
+		}
+	}
+	for i := 0; i < 4; i++ {
+		castleRightsZobristC[i] = rand.Uint64()
+	}
 }
 
 func generateRookMagicTable() {
@@ -158,6 +172,11 @@ func bishopMovesFromBlockers(origin Square, blockers uint64) uint64 {
 
 // The starting position FEN
 const Startpos = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+
+// Zobrist Constants
+var pieceSquareZobristC [12][64]uint64
+var castleRightsZobristC [4]uint64
+var whiteToMoveZobristC uint64 // active if white is to move
 
 const kDefaultMoveListLength int = 65
 

@@ -22,6 +22,7 @@ type Board struct {
 	fullmoveno    uint16
 	white         bitboards
 	black         bitboards
+	hash          uint64
 }
 
 // Castle rights helpers. Data stored inside, from LSB:
@@ -31,7 +32,12 @@ type Board struct {
 // 1 bit: Black castle kingside
 // This just indicates whether castling rights have been lost, not whether
 // castling is actually possible.
+func (b *Board) Hash() uint64 {
+	b.hash = recomputeBoardHash(b)
+	return b.hash
+}
 
+// Castling helper functions for all 16 possible scenarios
 func (b *Board) whiteCanCastleQueenside() bool {
 	return b.castlerights&1 == 1
 }
@@ -74,15 +80,19 @@ func (b *Board) oppCanCastleKingside() bool {
 }
 func (b *Board) flipWhiteQueensideCastle() {
 	b.castlerights = b.castlerights ^ (1)
+	b.hash ^= castleRightsZobristC[1]
 }
 func (b *Board) flipWhiteKingsideCastle() {
 	b.castlerights = b.castlerights ^ (1 << 1)
+	b.hash ^= castleRightsZobristC[0]
 }
 func (b *Board) flipBlackQueensideCastle() {
 	b.castlerights = b.castlerights ^ (1 << 2)
+	b.hash ^= castleRightsZobristC[3]
 }
 func (b *Board) flipBlackKingsideCastle() {
 	b.castlerights = b.castlerights ^ (1 << 3)
+	b.hash ^= castleRightsZobristC[2]
 }
 func (b *Board) flipQueensideCastle() {
 	if b.wtomove {

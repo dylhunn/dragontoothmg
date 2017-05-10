@@ -160,14 +160,14 @@ func (b *Board) generatePinnedMoves(moveList *[]Move, allowDest uint64) uint64 {
 			if (uint64(1)<<currBishopIdx)&allowDest != 0 {
 				if (b.wtomove && (pinnedPieceIdx/8)+1 == currBishopIdx/8) ||
 					(!b.wtomove && pinnedPieceIdx/8 == (currBishopIdx/8)+1) {
-					if ((uint64(1)<<currBishopIdx)&ourPromotionRank) != 0 { // We get to promote!
+					if ((uint64(1) << currBishopIdx) & ourPromotionRank) != 0 { // We get to promote!
 						for i := Piece(Knight); i <= Queen; i++ {
-							var move Move 
+							var move Move
 							move.Setfrom(Square(pinnedPieceIdx)).Setto(Square(currBishopIdx)).Setpromote(i)
 							*moveList = append(*moveList, move)
 						}
 					} else { // no promotion
-						var move Move 
+						var move Move
 						move.Setfrom(Square(pinnedPieceIdx)).Setto(Square(currBishopIdx))
 						*moveList = append(*moveList, move)
 					}

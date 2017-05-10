@@ -81,6 +81,8 @@ func (b *Board) Apply(m Move) func() {
 		}
 	}
 
+	// remove the old en passant square from the hash
+	b.hash ^= uint64(b.enpassant)
 	// Is this an e.p. capture? Strip the opponent pawn and reset the e.p. square
 	epCaptureSquare := b.enpassant
 	if pieceType == Pawn && m.To() == epCaptureSquare && epCaptureSquare != 0 {
@@ -93,6 +95,8 @@ func (b *Board) Apply(m Move) func() {
 	} else {
 		b.enpassant = 0
 	}
+	// add the new en passant square to the hash
+	b.hash ^= uint64(b.enpassant)
 
 	// Is this a promotion?
 	var destTypeBitboard *uint64
@@ -131,6 +135,7 @@ func (b *Board) Apply(m Move) func() {
 		}
 	}
 
+	b.hash ^= whiteToMoveZobristC
 	b.wtomove = !b.wtomove
 
 	// Return the unapply function (closure)
@@ -149,7 +154,10 @@ func (b *Board) Apply(m Move) func() {
 			ourBitboardPtr.rooks |= (uint64(1) << oldRookLoc)
 			ourBitboardPtr.all |= (uint64(1) << oldRookLoc)
 		}
+		// undo the new en passant square from the hash
+		b.hash ^= uint64(b.enpassant)
 		b.enpassant = epCaptureSquare
+		b.hash ^= uint64(b.enpassant) // restore the old one
 		if epCaptureSquare != 0 {
 			oppBitboardPtr.pawns |= (uint64(1) << uint8(int8(epCaptureSquare)+epDelta))
 			oppBitboardPtr.all |= (uint64(1) << uint8(int8(epCaptureSquare)+epDelta))
@@ -157,7 +165,10 @@ func (b *Board) Apply(m Move) func() {
 		if b.wtomove {
 			b.fullmoveno-- // decrement after undoing black's move
 		}
+
+		b.hash ^= whiteToMoveZobristC
 		b.wtomove = !b.wtomove
+
 		// must update castling flags after turn swap
 		if flippedKsCastle {
 			b.flipKingsideCastle()

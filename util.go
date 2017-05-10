@@ -8,6 +8,39 @@ import (
 	"strings"
 )
 
+func recomputeBoardHash(b *Board) uint64 {
+	var hash uint64 = 0
+	if b.wtomove {
+		hash ^= whiteToMoveZobristC
+	}
+	if b.whiteCanCastleKingside() {
+		hash ^= castleRightsZobristC[0]
+	}
+	if b.whiteCanCastleQueenside() {
+		hash ^= castleRightsZobristC[1]
+	}
+	if b.blackCanCastleKingside() {
+		hash ^= castleRightsZobristC[2]
+	}
+	if b.blackCanCastleQueenside() {
+		hash ^= castleRightsZobristC[3]
+	}
+	if b.enpassant > 0 {
+		hash ^= uint64(b.enpassant)
+	}
+	for i := uint8(0); i < 64; i++ {
+		whitePiece, _ := determinePieceType(&(b.white), uint64(1)<<i)
+		blackPiece, _ := determinePieceType(&(b.black), uint64(1)<<i)
+		if whitePiece != Nothing {
+			hash ^= pieceSquareZobristC[whitePiece-1][i]
+		}
+		if blackPiece != Nothing {
+			hash ^= pieceSquareZobristC[blackPiece+5][i]
+		}
+	}
+	return hash
+}
+
 // A testing-use function that ignores the error output
 func parseMove(movestr string) Move {
 	res, _ := ParseMove(movestr)
@@ -285,5 +318,6 @@ func ParseFen(fen string) Board {
 		result, _ := strconv.Atoi(tokens[5])
 		b.fullmoveno = uint16(result)
 	}
+	b.hash = recomputeBoardHash(&b)
 	return b
 }

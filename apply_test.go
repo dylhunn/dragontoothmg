@@ -4,6 +4,17 @@ import (
 	"testing"
 )
 
+// Test that two different sequences of moves involving en passant but leading to the same board have the same result
+func TestHashEpApplication(t *testing.T) {
+	b1 := ParseFen(Startpos)
+	b1.Apply(parseMove("e2e4"))
+	b1.Apply(parseMove("b8c6"))
+	b2 := ParseFen("r1bqkbnr/pppppppp/2n5/8/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 1")
+	if b1.Hash() != b2.Hash() {
+		t.Error("Fen changed.")
+	}
+}
+
 func TestApplyUnapply(t *testing.T) {
 	movesMap := map[string]Move{
 		// ordinary move
@@ -68,6 +79,7 @@ func TestApplyUnapply(t *testing.T) {
 	}
 	for k, v := range movesMap {
 		b := ParseFen(k)
+		oldHash := b.Hash()
 		fenBefore := b.ToFen()
 		fenAfter := b.ToFen()
 		if fenBefore != k {
@@ -81,17 +93,32 @@ func TestApplyUnapply(t *testing.T) {
 			t.Error("Move application of\n", &v, "\ndidn't produce expected result for\n", k, "->\n",
 				results[k], "\nInstead, we got:\n", b.ToFen())
 		}
+		if b.Hash() != recomputeBoardHash(&b) {
+			t.Error("Move apply changed board hash")
+		}
 		unapply()
+		newHash := b.Hash()
+		if oldHash != newHash || oldHash != recomputeBoardHash(&b) {
+			t.Error("Move apply/unapply changed board hash")
+		}
 		if k != b.ToFen() {
 			t.Error("Board changed during unapply for\n", k, "\nResult was\n", b.ToFen())
 		}
-		/*movesList := b.GenerateLegalMoves()
+		movesList := b.GenerateLegalMoves()
 		for _, mv := range movesList {
+			oldHash := b.Hash()
 			unapply := b.Apply(mv)
+			if b.Hash() != recomputeBoardHash(&b) {
+				t.Error("Move apply changed board hash")
+			}
 			unapply()
+			newHash := b.Hash()
 			if b.ToFen() != k {
 				t.Error("Move apply/unapply changed board\n", &mv, "\n", k)
 			}
-		}*/
+			if oldHash != newHash || oldHash != recomputeBoardHash(&b) {
+				t.Error("Move apply/unapply changed board hash")
+			}
+		}
 	}
 }

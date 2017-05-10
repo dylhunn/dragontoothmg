@@ -76,7 +76,7 @@ Here is a simple example invocation:
         // Apply it to the board
         unapplyFunc := board.Apply(currMove)
         // Print the move, the new position, and the hash of the new position
-        fmt.Println("Moved to:", destinationSquareStr)
+        fmt.Println("Moved to:", &currMove) // Reference converts Move to string automatically
         fmt.Println("New position is:", b.ToFen())
         fmt.Println("This new position has Zobrist hash:", board.Hash())
         // Unapply the move

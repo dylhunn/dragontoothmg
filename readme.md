@@ -6,7 +6,7 @@
 Dragontooth Movegen | Dylan D. Hunn
 ==================================
 
-Dragontooth Movegen is a fast, no-compromises chess move generator written entirely in Go. It provides a simple API for generating `legal moves`. It also provides `Board` and `Move` types, `Apply()` and `Unapply()` functionality, and easy-to-use Zobrist-backed `hash`ing of board positions. FEN parsing/serializing and Move parsing/serializing are supported out of the box.
+Dragontooth Movegen is a fast, no-compromises chess move generator written entirely in Go. It provides a simple API for `GenerateLegalMoves()`. It also provides `Board` and `Move` types, `Apply()` and `Unapply()` functionality, and easy-to-use Zobrist-backed `hash`ing of board positions. FEN parsing/serializing and Move parsing/serializing are supported out of the box.
 
 `Dragontoothmg` is based on *magic bitboards* for maximum performance, and generates legal moves only using *pinned piece tables*.
 

@@ -11,7 +11,7 @@ const nsPerMs = 1000000
 const nsPerS = 1000000000
 
 func main() {
-	fmt.Println("\nBENCHMARKS")
+	fmt.Println("\nSABERTOOTHMG MOVE GENERATOR BENCHMARKS (2015 MacBook 1.2GHz Core m5, on mains)")
 	printResultLine(testing.Benchmark(benchmarkStartpos5), "Start position", startposResult5, 5)
 	printResultLine(testing.Benchmark(benchmarkStartpos6), "Start position", startposResult6, 6)
 	printResultLine(testing.Benchmark(benchmarkKiwipete), "Kiwipete position", kpResult, 5)

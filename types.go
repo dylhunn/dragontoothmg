@@ -33,7 +33,7 @@ type Board struct {
 // This just indicates whether castling rights have been lost, not whether
 // castling is actually possible.
 func (b *Board) Hash() uint64 {
-	b.hash = recomputeBoardHash(b)
+	//b.hash = recomputeBoardHash(b)
 	return b.hash
 }
 

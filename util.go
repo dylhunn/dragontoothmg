@@ -58,6 +58,7 @@ func (b *bitboards) sanityCheck() {
 
 // Some example valid move strings:
 // e1e2 b4d6 e7e8q a2a1n
+// TODO(dylhunn): Make the parser more forgiving. Eg: 0-0, O-O-O, a2-a3, D3D4
 func ParseMove(movestr string) (Move, error) {
 	var mv Move
 	if len(movestr) < 4 || len(movestr) > 5 {

@@ -25,9 +25,7 @@ func recomputeBoardHash(b *Board) uint64 {
 	if b.blackCanCastleQueenside() {
 		hash ^= castleRightsZobristC[3]
 	}
-	if b.enpassant > 0 {
-		hash ^= uint64(b.enpassant)
-	}
+	hash ^= uint64(b.enpassant)
 	for i := uint8(0); i < 64; i++ {
 		whitePiece, _ := determinePieceType(&(b.white), uint64(1)<<i)
 		blackPiece, _ := determinePieceType(&(b.black), uint64(1)<<i)

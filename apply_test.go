@@ -94,31 +94,44 @@ func TestApplyUnapply(t *testing.T) {
 				results[k], "\nInstead, we got:\n", b.ToFen())
 		}
 		if b.Hash() != recomputeBoardHash(&b) {
-			t.Error("Move apply changed board hash")
+			t.Error("Move apply changed board hash from expected result",
+				"\nwith move", &v)
 		}
 		unapply()
 		newHash := b.Hash()
-		if oldHash != newHash || oldHash != recomputeBoardHash(&b) {
-			t.Error("Move apply/unapply changed board hash")
+		if oldHash != newHash {
+			t.Error("(0) Move unapply (or previous apply) changed board hash for:\n",
+				b.ToFen(), "\nwith move", &v)
+		}
+		if newHash != recomputeBoardHash(&b) {
+			t.Error("(1) Move unapply (or previous apply) changed board hash for:\n",
+				b.ToFen(), "\nwith move", &v)
 		}
 		if k != b.ToFen() {
-			t.Error("Board changed during unapply for\n", k, "\nResult was\n", b.ToFen())
+			t.Error("Board changed during unapply for\n", k, "\nResult was\n", b.ToFen(),
+				"\nwith move", &v)
 		}
-		movesList := b.GenerateLegalMoves()
+		/*movesList := b.GenerateLegalMoves()
 		for _, mv := range movesList {
 			oldHash := b.Hash()
 			unapply := b.Apply(mv)
 			if b.Hash() != recomputeBoardHash(&b) {
-				t.Error("Move apply changed board hash")
+				t.Error("(1) Move apply changed board hash from expected result")
 			}
 			unapply()
 			newHash := b.Hash()
 			if b.ToFen() != k {
-				t.Error("Move apply/unapply changed board\n", &mv, "\n", k)
+				t.Error("Move unapply (or previous apply) changed board for:\n",
+					b.ToFen(), "\nand move", &mv)
 			}
-			if oldHash != newHash || oldHash != recomputeBoardHash(&b) {
-				t.Error("Move apply/unapply changed board hash")
+			if oldHash != newHash {
+				t.Error("(2) Move unapply (or previous apply) changed board hash for:\n",
+					b.ToFen(), "\nand move", &mv)
 			}
-		}
+			if newHash != recomputeBoardHash(&b) {
+				t.Error("(3) Move unapply (or previous apply) changed board hash for:\n",
+					b.ToFen(), "\nand move", &mv)
+			}
+		}*/
 	}
 }

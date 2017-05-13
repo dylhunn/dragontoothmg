@@ -64,7 +64,7 @@ func TestIdxToAlg(t *testing.T) {
 
 func TestParseFen(t *testing.T) {
 	b := ParseFen("1Q2rk2/2p2p2/1n4b1/N7/2B1Pp1q/2B4P/1QPP4/4K2R b K e3 4 30")
-	if b.wtomove {
+	if b.Wtomove {
 		t.Error("Error parsing FEN")
 	}
 	if b.enpassant != 20 {
@@ -94,10 +94,10 @@ func TestParseFen(t *testing.T) {
 	if b.white.knights != 1<<32 {
 		t.Error("Error parsing FEN")
 	}
-	if b.halfmoveclock != 4 {
+	if b.Halfmoveclock != 4 {
 		t.Error("Error parsing FEN")
 	}
-	if b.fullmoveno != 30 {
+	if b.Fullmoveno != 30 {
 		t.Error("Error parsing FEN")
 	}
 }

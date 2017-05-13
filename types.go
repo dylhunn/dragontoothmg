@@ -25,6 +25,15 @@ type Board struct {
 	hash          uint64
 }
 
+// Return the Zobrist hash value for the board.
+// The hash value does NOT change with the turn number, nor the draw move counter.
+// All other elements of the Board type affect the hash.
+// This function is cheap to call, since the hash is incrementally updated.
+func (b *Board) Hash() uint64 {
+	//b.hash = recomputeBoardHash(b)
+	return b.hash
+}
+
 // Castle rights helpers. Data stored inside, from LSB:
 // 1 bit: White castle queenside
 // 1 bit: White castle kingside
@@ -32,10 +41,6 @@ type Board struct {
 // 1 bit: Black castle kingside
 // This just indicates whether castling rights have been lost, not whether
 // castling is actually possible.
-func (b *Board) Hash() uint64 {
-	//b.hash = recomputeBoardHash(b)
-	return b.hash
-}
 
 // Castling helper functions for all 16 possible scenarios
 func (b *Board) whiteCanCastleQueenside() bool {

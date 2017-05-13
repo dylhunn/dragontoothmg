@@ -4,19 +4,35 @@ import (
 	"fmt"
 	"github.com/dylhunn/dragontoothmg"
 	"testing"
+	"runtime/pprof"
+	"flag"
+	"os"
+	"log"
 	//"time"
 )
 
 const nsPerMs = 1000000
 const nsPerS = 1000000000
 
+var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
+
 func main() {
-	fmt.Println("\nSABERTOOTHMG MOVE GENERATOR BENCHMARKS (2015 MacBook 1.2GHz Core m5, on mains)")
+	flag.Parse()
+    if *cpuprofile != "" {
+        f, err := os.Create(*cpuprofile)
+        if err != nil {
+            log.Fatal(err)
+        }
+        pprof.StartCPUProfile(f)
+        defer pprof.StopCPUProfile()
+    }
+
+	fmt.Println("\nSABERTOOTHMG MOVE GENERATOR BENCHMARKS")
 	printResultLine(testing.Benchmark(benchmarkStartpos5), "Start position", startposResult5, 5)
 	printResultLine(testing.Benchmark(benchmarkStartpos6), "Start position", startposResult6, 6)
 	printResultLine(testing.Benchmark(benchmarkKiwipete), "Kiwipete position", kpResult, 5)
 	printResultLine(testing.Benchmark(benchmarkDense), "Dense position", denseResult, 6)
-	printResultLine(testing.Benchmark(benchmarkEndgameRP), "Endgame R/P position", endgameResult, 6)
+	printResultLine(testing.Benchmark(benchmarkEndgameRP), "Endgame R/P position", endgameResult, 7)
 	fmt.Println()
 }
 
@@ -34,7 +50,7 @@ func benchmarkStartpos5(b *testing.B) {
 	pos := dragontoothmg.Startpos
 	board := dragontoothmg.ParseFen(pos)
 	for i := 0; i < b.N; i++ {
-		startposResult5 = dragontoothmg.Perft(&board, 5)
+		startposResult5 = dragontoothmg.Perft(&board,6)
 	}
 }
 
@@ -70,6 +86,6 @@ func benchmarkEndgameRP(b *testing.B) {
 	pos := "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 0"
 	board := dragontoothmg.ParseFen(pos)
 	for i := 0; i < b.N; i++ {
-		endgameResult = dragontoothmg.Perft(&board, 6)
+		endgameResult = dragontoothmg.Perft(&board, 7)
 	}
 }

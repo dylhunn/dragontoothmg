@@ -139,10 +139,10 @@ func (b *Board) Apply(m Move) func() {
 
 	// If a rook was captured, it strips castling rights
 	if capturedPieceType == Rook {
-		if b.oppCanCastleKingside() && m.To()%8 == 7 && toBitboard&oppStartingRankBb != 0 { // captured king rook
+		if  m.To()%8 == 7 && toBitboard&oppStartingRankBb != 0 && b.oppCanCastleKingside(){ // captured king rook
 			b.flipOppKingsideCastle()
 			flippedOppKsCastle = true
-		} else if b.oppCanCastleQueenside() && m.To()%8 == 0 && toBitboard&oppStartingRankBb != 0 { // queen rooks
+		} else if m.To()%8 == 0 && toBitboard&oppStartingRankBb != 0 && b.oppCanCastleQueenside(){ // queen rooks
 			b.flipOppQueensideCastle()
 			flippedOppQsCastle = true
 		}

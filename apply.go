@@ -11,7 +11,7 @@ func (b *Board) Apply(m Move) func() {
 	// the constant that represents the index into pieceSquareZobristC for the pawn of our color
 	var ourPiecesPawnZobristIndex int
 	var oppPiecesPawnZobristIndex int
-	if b.wtomove {
+	if b.Wtomove {
 		ourBitboardPtr = &(b.white)
 		oppBitboardPtr = &(b.black)
 		epDelta = -8
@@ -25,7 +25,7 @@ func (b *Board) Apply(m Move) func() {
 		epDelta = 8
 		oppStartingRankBb = onlyRank[0]
 		ourStartingRankBb = onlyRank[7]
-		b.fullmoveno++ // increment after black's move
+		b.Fullmoveno++ // increment after black's move
 		ourPiecesPawnZobristIndex = 6
 		oppPiecesPawnZobristIndex = 0
 	}
@@ -150,7 +150,7 @@ func (b *Board) Apply(m Move) func() {
 
 	// flip the side to move in the hash
 	b.hash ^= whiteToMoveZobristC
-	b.wtomove = !b.wtomove
+	b.Wtomove = !b.Wtomove
 
 	// remove the old en passant square from the hash, and add the new one
 	b.hash ^= uint64(oldEpCaptureSquare)
@@ -160,7 +160,7 @@ func (b *Board) Apply(m Move) func() {
 	unapply := func() {
 		// Flip the player to move
 		b.hash ^= whiteToMoveZobristC
-		b.wtomove = !b.wtomove
+		b.Wtomove = !b.Wtomove
 
 
 		// Unapply move
@@ -203,8 +203,8 @@ func (b *Board) Apply(m Move) func() {
 		}
 
 		// Decrement move clock
-		if !b.wtomove {
-			b.fullmoveno-- // decrement after undoing black's move
+		if !b.Wtomove {
+			b.Fullmoveno-- // decrement after undoing black's move
 		}
 		
 		// Restore castling flags

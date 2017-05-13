@@ -10,7 +10,7 @@ import (
 
 func recomputeBoardHash(b *Board) uint64 {
 	var hash uint64 = 0
-	if b.wtomove {
+	if b.Wtomove {
 		hash ^= whiteToMoveZobristC
 	}
 	if b.whiteCanCastleKingside() {
@@ -195,7 +195,7 @@ func (b *Board) ToFen() string {
 			}
 		}
 	}
-	if b.wtomove {
+	if b.Wtomove {
 		position += " w"
 	} else {
 		position += " b"
@@ -227,7 +227,7 @@ func (b *Board) ToFen() string {
 	} else {
 		position += "-"
 	}
-	position = position + " " + strconv.Itoa(int(b.halfmoveclock)) + " " + strconv.Itoa(int(b.fullmoveno))
+	position = position + " " + strconv.Itoa(int(b.Halfmoveclock)) + " " + strconv.Itoa(int(b.Fullmoveno))
 	return position
 }
 
@@ -286,7 +286,7 @@ func ParseFen(fen string) Board {
 	b.white.all = b.white.pawns | b.white.knights | b.white.bishops | b.white.rooks | b.white.queens | b.white.kings
 	b.black.all = b.black.pawns | b.black.knights | b.black.bishops | b.black.rooks | b.black.queens | b.black.kings
 
-	b.wtomove = tokens[1] == "w" || tokens[1] == "W"
+	b.Wtomove = tokens[1] == "w" || tokens[1] == "W"
 	if strings.Contains(tokens[2], "K") {
 		b.flipWhiteKingsideCastle()
 	}
@@ -310,12 +310,12 @@ func ParseFen(fen string) Board {
 
 	if len(tokens) > 4 {
 		result, _ := strconv.Atoi(tokens[4])
-		b.halfmoveclock = uint8(result)
+		b.Halfmoveclock = uint8(result)
 	}
 
 	if len(tokens) > 5 {
 		result, _ := strconv.Atoi(tokens[5])
-		b.fullmoveno = uint16(result)
+		b.Fullmoveno = uint16(result)
 	}
 	b.hash = recomputeBoardHash(&b)
 	return b

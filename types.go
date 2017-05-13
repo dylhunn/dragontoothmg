@@ -15,11 +15,11 @@ package dragontoothmg
 
 // The board type, which uses little-endian rank-file mapping.
 type Board struct {
-	wtomove       bool
+	Wtomove       bool
 	enpassant     uint8 // square id (16-23 or 40-47) where en passant capture is possible
 	castlerights  uint8
-	halfmoveclock uint8
-	fullmoveno    uint16
+	Halfmoveclock uint8
+	Fullmoveno    uint16
 	white         bitboards
 	black         bitboards
 	hash          uint64
@@ -56,28 +56,28 @@ func (b *Board) blackCanCastleKingside() bool {
 	return (b.castlerights&0x8)>>3 == 1
 }
 func (b *Board) canCastleQueenside() bool {
-	if b.wtomove {
+	if b.Wtomove {
 		return b.whiteCanCastleQueenside()
 	} else {
 		return b.blackCanCastleQueenside()
 	}
 }
 func (b *Board) canCastleKingside() bool {
-	if b.wtomove {
+	if b.Wtomove {
 		return b.whiteCanCastleKingside()
 	} else {
 		return b.blackCanCastleKingside()
 	}
 }
 func (b *Board) oppCanCastleQueenside() bool {
-	if b.wtomove {
+	if b.Wtomove {
 		return b.blackCanCastleQueenside()
 	} else {
 		return b.whiteCanCastleQueenside()
 	}
 }
 func (b *Board) oppCanCastleKingside() bool {
-	if b.wtomove {
+	if b.Wtomove {
 		return b.blackCanCastleKingside()
 	} else {
 		return b.whiteCanCastleKingside()
@@ -100,28 +100,28 @@ func (b *Board) flipBlackKingsideCastle() {
 	b.hash ^= castleRightsZobristC[2]
 }
 func (b *Board) flipQueensideCastle() {
-	if b.wtomove {
+	if b.Wtomove {
 		b.flipWhiteQueensideCastle()
 	} else {
 		b.flipBlackQueensideCastle()
 	}
 }
 func (b *Board) flipKingsideCastle() {
-	if b.wtomove {
+	if b.Wtomove {
 		b.flipWhiteKingsideCastle()
 	} else {
 		b.flipBlackKingsideCastle()
 	}
 }
 func (b *Board) flipOppQueensideCastle() {
-	if b.wtomove {
+	if b.Wtomove {
 		b.flipBlackQueensideCastle()
 	} else {
 		b.flipWhiteQueensideCastle()
 	}
 }
 func (b *Board) flipOppKingsideCastle() {
-	if b.wtomove {
+	if b.Wtomove {
 		b.flipBlackKingsideCastle()
 	} else {
 		b.flipWhiteKingsideCastle()

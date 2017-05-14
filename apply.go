@@ -74,10 +74,10 @@ func (b *Board) Apply(m Move) func() {
 
 	// Apply the castling rook movement
 	if castleStatus != 0 {
-		ourBitboardPtr.rooks |= (uint64(1) << newRookLoc)
-		ourBitboardPtr.all |= (uint64(1) << newRookLoc)
-		ourBitboardPtr.rooks &= ^(uint64(1) << oldRookLoc)
-		ourBitboardPtr.all &= ^(uint64(1) << oldRookLoc)
+		ourBitboardPtr.Rooks |= (uint64(1) << newRookLoc)
+		ourBitboardPtr.All |= (uint64(1) << newRookLoc)
+		ourBitboardPtr.Rooks &= ^(uint64(1) << oldRookLoc)
+		ourBitboardPtr.All &= ^(uint64(1) << oldRookLoc)
 		// Update rook location in hash
 		// (Rook - 1) assumes that "Nothing" precedes "Rook" in the Piece constants list
 		b.hash ^= pieceSquareZobristC[ourPiecesPawnZobristIndex+(Rook-1)][oldRookLoc]
@@ -90,8 +90,8 @@ func (b *Board) Apply(m Move) func() {
 	if pieceType == Pawn && m.To() == oldEpCaptureSquare && oldEpCaptureSquare != 0 {
 		actuallyPerformedEpCapture = true
 		epOpponentPawnLocation := uint8(int8(oldEpCaptureSquare) + epDelta)
-		oppBitboardPtr.pawns &= ^(uint64(1) << epOpponentPawnLocation)
-		oppBitboardPtr.all &= ^(uint64(1) << epOpponentPawnLocation)
+		oppBitboardPtr.Pawns &= ^(uint64(1) << epOpponentPawnLocation)
+		oppBitboardPtr.All &= ^(uint64(1) << epOpponentPawnLocation)
 		// Remove the opponent pawn from the board hash.
 		b.hash ^= pieceSquareZobristC[oppPiecesPawnZobristIndex][epOpponentPawnLocation]
 	}
@@ -107,16 +107,16 @@ func (b *Board) Apply(m Move) func() {
 	var promotedToPieceType Piece // if not promoted, same as pieceType
 	switch m.Promote() {
 	case Queen:
-		destTypeBitboard = &(ourBitboardPtr.queens)
+		destTypeBitboard = &(ourBitboardPtr.Queens)
 		promotedToPieceType = Queen
 	case Knight:
-		destTypeBitboard = &(ourBitboardPtr.knights)
+		destTypeBitboard = &(ourBitboardPtr.Knights)
 		promotedToPieceType = Knight
 	case Rook:
-		destTypeBitboard = &(ourBitboardPtr.rooks)
+		destTypeBitboard = &(ourBitboardPtr.Rooks)
 		promotedToPieceType = Rook
 	case Bishop:
-		destTypeBitboard = &(ourBitboardPtr.bishops)
+		destTypeBitboard = &(ourBitboardPtr.Bishops)
 		promotedToPieceType = Bishop
 	default:
 		destTypeBitboard = pieceTypeBitboard
@@ -125,13 +125,13 @@ func (b *Board) Apply(m Move) func() {
 
 	// Apply the move
 	capturedPieceType, capturedBitboard := determinePieceType(oppBitboardPtr, toBitboard)
-	ourBitboardPtr.all &= ^fromBitboard // remove at "from"
-	ourBitboardPtr.all |= toBitboard    // add at "to"
+	ourBitboardPtr.All &= ^fromBitboard // remove at "from"
+	ourBitboardPtr.All |= toBitboard    // add at "to"
 	*pieceTypeBitboard &= ^fromBitboard // remove at "from"
 	*destTypeBitboard |= toBitboard     // add at "to"
 	if capturedPieceType != Nothing {   // This does not account for e.p. captures
 		*capturedBitboard &= ^toBitboard
-		oppBitboardPtr.all &= ^toBitboard
+		oppBitboardPtr.All &= ^toBitboard
 		b.hash ^= pieceSquareZobristC[oppPiecesPawnZobristIndex+(int(capturedPieceType)-1)][m.To()] // remove the captured piece from the hash
 	}
 	b.hash ^= pieceSquareZobristC[(int(pieceType)-1)+ourPiecesPawnZobristIndex][m.From()]         // remove piece at "from"
@@ -164,8 +164,8 @@ func (b *Board) Apply(m Move) func() {
 
 
 		// Unapply move
-		ourBitboardPtr.all &= ^toBitboard                                                             // remove at "to"
-		ourBitboardPtr.all |= fromBitboard                                                            // add at "from"
+		ourBitboardPtr.All &= ^toBitboard                                                             // remove at "to"
+		ourBitboardPtr.All |= fromBitboard                                                            // add at "from"
 		*destTypeBitboard &= ^toBitboard                                                              // remove at "to"
 		*pieceTypeBitboard |= fromBitboard                                                            // add at "from"
 		b.hash ^= pieceSquareZobristC[(int(promotedToPieceType)-1)+ourPiecesPawnZobristIndex][m.To()] // remove the piece at "to"
@@ -174,17 +174,17 @@ func (b *Board) Apply(m Move) func() {
 		// Restore captured piece (excluding e.p.)
 		if capturedPieceType != Nothing {                                                             // doesn't consider e.p. captures
 			*capturedBitboard |= toBitboard
-			oppBitboardPtr.all |= toBitboard
+			oppBitboardPtr.All |= toBitboard
 			// restore the captured piece to the hash (excluding e.p.)
 			b.hash ^= pieceSquareZobristC[oppPiecesPawnZobristIndex+(int(capturedPieceType)-1)][m.To()]
 		}
 
 		// Restore rooks from castling move
 		if castleStatus != 0 {
-			ourBitboardPtr.rooks &= ^(uint64(1) << newRookLoc)
-			ourBitboardPtr.all &= ^(uint64(1) << newRookLoc)
-			ourBitboardPtr.rooks |= (uint64(1) << oldRookLoc)
-			ourBitboardPtr.all |= (uint64(1) << oldRookLoc)
+			ourBitboardPtr.Rooks &= ^(uint64(1) << newRookLoc)
+			ourBitboardPtr.All &= ^(uint64(1) << newRookLoc)
+			ourBitboardPtr.Rooks |= (uint64(1) << oldRookLoc)
+			ourBitboardPtr.All |= (uint64(1) << oldRookLoc)
 			// Revert castling rook move
 			b.hash ^= pieceSquareZobristC[ourPiecesPawnZobristIndex+(Rook-1)][oldRookLoc]
 			b.hash ^= pieceSquareZobristC[ourPiecesPawnZobristIndex+(Rook-1)][newRookLoc]
@@ -196,8 +196,8 @@ func (b *Board) Apply(m Move) func() {
 		b.enpassant = oldEpCaptureSquare
 		if actuallyPerformedEpCapture {
 			epOpponentPawnLocation := uint8(int8(oldEpCaptureSquare) + epDelta)
-			oppBitboardPtr.pawns |= (uint64(1) << epOpponentPawnLocation)
-			oppBitboardPtr.all |= (uint64(1) << epOpponentPawnLocation)
+			oppBitboardPtr.Pawns |= (uint64(1) << epOpponentPawnLocation)
+			oppBitboardPtr.All |= (uint64(1) << epOpponentPawnLocation)
 			// Add the opponent pawn to the board hash.
 			b.hash ^= pieceSquareZobristC[oppPiecesPawnZobristIndex][epOpponentPawnLocation]
 		}
@@ -227,25 +227,25 @@ func (b *Board) Apply(m Move) func() {
 
 func determinePieceType(ourBitboardPtr *Bitboards, squareMask uint64) (Piece, *uint64) {
 	var pieceType Piece = Nothing
-	pieceTypeBitboard := &(ourBitboardPtr.all)
-	if squareMask&ourBitboardPtr.pawns != 0 {
+	pieceTypeBitboard := &(ourBitboardPtr.All)
+	if squareMask&ourBitboardPtr.Pawns != 0 {
 		pieceType = Pawn
-		pieceTypeBitboard = &(ourBitboardPtr.pawns)
-	} else if squareMask&ourBitboardPtr.knights != 0 {
+		pieceTypeBitboard = &(ourBitboardPtr.Pawns)
+	} else if squareMask&ourBitboardPtr.Knights != 0 {
 		pieceType = Knight
-		pieceTypeBitboard = &(ourBitboardPtr.knights)
-	} else if squareMask&ourBitboardPtr.bishops != 0 {
+		pieceTypeBitboard = &(ourBitboardPtr.Knights)
+	} else if squareMask&ourBitboardPtr.Bishops != 0 {
 		pieceType = Bishop
-		pieceTypeBitboard = &(ourBitboardPtr.bishops)
-	} else if squareMask&ourBitboardPtr.rooks != 0 {
+		pieceTypeBitboard = &(ourBitboardPtr.Bishops)
+	} else if squareMask&ourBitboardPtr.Rooks != 0 {
 		pieceType = Rook
-		pieceTypeBitboard = &(ourBitboardPtr.rooks)
-	} else if squareMask&ourBitboardPtr.queens != 0 {
+		pieceTypeBitboard = &(ourBitboardPtr.Rooks)
+	} else if squareMask&ourBitboardPtr.Queens != 0 {
 		pieceType = Queen
-		pieceTypeBitboard = &(ourBitboardPtr.queens)
-	} else if squareMask&ourBitboardPtr.kings != 0 {
+		pieceTypeBitboard = &(ourBitboardPtr.Queens)
+	} else if squareMask&ourBitboardPtr.Kings != 0 {
 		pieceType = King
-		pieceTypeBitboard = &(ourBitboardPtr.kings)
+		pieceTypeBitboard = &(ourBitboardPtr.Kings)
 	}
 	return pieceType, pieceTypeBitboard
 }

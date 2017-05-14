@@ -130,13 +130,13 @@ func (b *Board) flipOppKingsideCastle() {
 
 // Contains bitboard representations of all the pieces for a side.
 type Bitboards struct {
-	pawns   uint64
-	bishops uint64
-	knights uint64
-	rooks   uint64
-	queens  uint64
-	kings   uint64
-	all     uint64
+	Pawns   uint64
+	Bishops uint64
+	Knights uint64
+	Rooks   uint64
+	Queens  uint64
+	Kings   uint64
+	All     uint64
 }
 
 // Data stored inside, from LSB

@@ -46,10 +46,10 @@ func parseMove(movestr string) Move {
 }
 
 func (b *Bitboards) sanityCheck() {
-	if b.all != b.pawns|b.knights|b.bishops|b.rooks|b.kings|b.queens {
+	if b.All != b.Pawns|b.Knights|b.Bishops|b.Rooks|b.Kings|b.Queens {
 		fmt.Println("Bitboard sanity check problem.")
 	}
-	if ((((((b.all ^ b.pawns) ^ b.knights) ^ b.bishops) ^ b.rooks) ^ b.kings) ^ b.queens) != 0 {
+	if ((((((b.All ^ b.Pawns) ^ b.Knights) ^ b.Bishops) ^ b.Rooks) ^ b.Kings) ^ b.Queens) != 0 {
 		fmt.Println("Bitboard sanity check problem.")
 	}
 }
@@ -150,29 +150,29 @@ func (b *Board) ToFen() string {
 		currMask = 1 << uint64(currIdx)
 
 		toprint := ""
-		if b.White.pawns&currMask != 0 {
+		if b.White.Pawns&currMask != 0 {
 			toprint += "P"
-		} else if b.White.knights&currMask != 0 {
+		} else if b.White.Knights&currMask != 0 {
 			toprint += "N"
-		} else if b.White.bishops&currMask != 0 {
+		} else if b.White.Bishops&currMask != 0 {
 			toprint += "B"
-		} else if b.White.rooks&currMask != 0 {
+		} else if b.White.Rooks&currMask != 0 {
 			toprint += "R"
-		} else if b.White.queens&currMask != 0 {
+		} else if b.White.Queens&currMask != 0 {
 			toprint += "Q"
-		} else if b.White.kings&currMask != 0 {
+		} else if b.White.Kings&currMask != 0 {
 			toprint += "K"
-		} else if b.Black.pawns&currMask != 0 {
+		} else if b.Black.Pawns&currMask != 0 {
 			toprint += "p"
-		} else if b.Black.knights&currMask != 0 {
+		} else if b.Black.Knights&currMask != 0 {
 			toprint += "n"
-		} else if b.Black.bishops&currMask != 0 {
+		} else if b.Black.Bishops&currMask != 0 {
 			toprint += "b"
-		} else if b.Black.rooks&currMask != 0 {
+		} else if b.Black.Rooks&currMask != 0 {
 			toprint += "r"
-		} else if b.Black.queens&currMask != 0 {
+		} else if b.Black.Queens&currMask != 0 {
 			toprint += "q"
-		} else if b.Black.kings&currMask != 0 {
+		} else if b.Black.Kings&currMask != 0 {
 			toprint += "k"
 		} else {
 			empty++
@@ -258,33 +258,33 @@ func ParseFen(fen string) Board {
 	for i := uint8(0); i < 64; i++ {
 		switch tokens[0][i] {
 		case 'p':
-			b.Black.pawns |= 1 << i
+			b.Black.Pawns |= 1 << i
 		case 'n':
-			b.Black.knights |= 1 << i
+			b.Black.Knights |= 1 << i
 		case 'b':
-			b.Black.bishops |= 1 << i
+			b.Black.Bishops |= 1 << i
 		case 'r':
-			b.Black.rooks |= 1 << i
+			b.Black.Rooks |= 1 << i
 		case 'q':
-			b.Black.queens |= 1 << i
+			b.Black.Queens |= 1 << i
 		case 'k':
-			b.Black.kings |= 1 << i
+			b.Black.Kings |= 1 << i
 		case 'P':
-			b.White.pawns |= 1 << i
+			b.White.Pawns |= 1 << i
 		case 'N':
-			b.White.knights |= 1 << i
+			b.White.Knights |= 1 << i
 		case 'B':
-			b.White.bishops |= 1 << i
+			b.White.Bishops |= 1 << i
 		case 'R':
-			b.White.rooks |= 1 << i
+			b.White.Rooks |= 1 << i
 		case 'Q':
-			b.White.queens |= 1 << i
+			b.White.Queens |= 1 << i
 		case 'K':
-			b.White.kings |= 1 << i
+			b.White.Kings |= 1 << i
 		}
 	}
-	b.White.all = b.White.pawns | b.White.knights | b.White.bishops | b.White.rooks | b.White.queens | b.White.kings
-	b.Black.all = b.Black.pawns | b.Black.knights | b.Black.bishops | b.Black.rooks | b.Black.queens | b.Black.kings
+	b.White.All = b.White.Pawns | b.White.Knights | b.White.Bishops | b.White.Rooks | b.White.Queens | b.White.Kings
+	b.Black.All = b.Black.Pawns | b.Black.Knights | b.Black.Bishops | b.Black.Rooks | b.Black.Queens | b.Black.Kings
 
 	b.Wtomove = tokens[1] == "w" || tokens[1] == "W"
 	if strings.Contains(tokens[2], "K") {

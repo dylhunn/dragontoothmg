@@ -111,7 +111,7 @@ func TestApplyUnapply(t *testing.T) {
 			t.Error("Board changed during unapply for\n", k, "\nResult was\n", b.ToFen(),
 				"\nwith move", &v)
 		}
-		/*movesList := b.GenerateLegalMoves()
+		movesList := b.GenerateLegalMoves()
 		for _, mv := range movesList {
 			oldHash := b.Hash()
 			unapply := b.Apply(mv)
@@ -132,6 +132,6 @@ func TestApplyUnapply(t *testing.T) {
 				t.Error("(3) Move unapply (or previous apply) changed board hash for:\n",
 					b.ToFen(), "\nand move", &mv)
 			}
-		}*/
+		}
 	}
 }

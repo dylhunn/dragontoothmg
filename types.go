@@ -20,8 +20,8 @@ type Board struct {
 	castlerights  uint8
 	Halfmoveclock uint8
 	Fullmoveno    uint16
-	white         bitboards
-	black         bitboards
+	White         Bitboards
+	Black         Bitboards
 	hash          uint64
 }
 
@@ -128,7 +128,8 @@ func (b *Board) flipOppKingsideCastle() {
 	}
 }
 
-type bitboards struct {
+// Contains bitboard representations of all the pieces for a side.
+type Bitboards struct {
 	pawns   uint64
 	bishops uint64
 	knights uint64

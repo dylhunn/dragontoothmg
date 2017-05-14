@@ -27,8 +27,8 @@ func recomputeBoardHash(b *Board) uint64 {
 	}
 	hash ^= uint64(b.enpassant)
 	for i := uint8(0); i < 64; i++ {
-		whitePiece, _ := determinePieceType(&(b.white), uint64(1)<<i)
-		blackPiece, _ := determinePieceType(&(b.black), uint64(1)<<i)
+		whitePiece, _ := determinePieceType(&(b.White), uint64(1)<<i)
+		blackPiece, _ := determinePieceType(&(b.Black), uint64(1)<<i)
 		if whitePiece != Nothing {
 			hash ^= pieceSquareZobristC[whitePiece-1][i]
 		}
@@ -45,7 +45,7 @@ func parseMove(movestr string) Move {
 	return res
 }
 
-func (b *bitboards) sanityCheck() {
+func (b *Bitboards) sanityCheck() {
 	if b.all != b.pawns|b.knights|b.bishops|b.rooks|b.kings|b.queens {
 		fmt.Println("Bitboard sanity check problem.")
 	}
@@ -139,8 +139,8 @@ func IndexToAlgebraic(id Square) string {
 
 // Serializes a board position to a Fen string.
 func (b *Board) ToFen() string {
-	b.white.sanityCheck()
-	b.black.sanityCheck()
+	b.White.sanityCheck()
+	b.Black.sanityCheck()
 	var position string
 	var empty int // empty slots
 	for i := 63; i >= 0; i-- {
@@ -150,29 +150,29 @@ func (b *Board) ToFen() string {
 		currMask = 1 << uint64(currIdx)
 
 		toprint := ""
-		if b.white.pawns&currMask != 0 {
+		if b.White.pawns&currMask != 0 {
 			toprint += "P"
-		} else if b.white.knights&currMask != 0 {
+		} else if b.White.knights&currMask != 0 {
 			toprint += "N"
-		} else if b.white.bishops&currMask != 0 {
+		} else if b.White.bishops&currMask != 0 {
 			toprint += "B"
-		} else if b.white.rooks&currMask != 0 {
+		} else if b.White.rooks&currMask != 0 {
 			toprint += "R"
-		} else if b.white.queens&currMask != 0 {
+		} else if b.White.queens&currMask != 0 {
 			toprint += "Q"
-		} else if b.white.kings&currMask != 0 {
+		} else if b.White.kings&currMask != 0 {
 			toprint += "K"
-		} else if b.black.pawns&currMask != 0 {
+		} else if b.Black.pawns&currMask != 0 {
 			toprint += "p"
-		} else if b.black.knights&currMask != 0 {
+		} else if b.Black.knights&currMask != 0 {
 			toprint += "n"
-		} else if b.black.bishops&currMask != 0 {
+		} else if b.Black.bishops&currMask != 0 {
 			toprint += "b"
-		} else if b.black.rooks&currMask != 0 {
+		} else if b.Black.rooks&currMask != 0 {
 			toprint += "r"
-		} else if b.black.queens&currMask != 0 {
+		} else if b.Black.queens&currMask != 0 {
 			toprint += "q"
-		} else if b.black.kings&currMask != 0 {
+		} else if b.Black.kings&currMask != 0 {
 			toprint += "k"
 		} else {
 			empty++
@@ -258,33 +258,33 @@ func ParseFen(fen string) Board {
 	for i := uint8(0); i < 64; i++ {
 		switch tokens[0][i] {
 		case 'p':
-			b.black.pawns |= 1 << i
+			b.Black.pawns |= 1 << i
 		case 'n':
-			b.black.knights |= 1 << i
+			b.Black.knights |= 1 << i
 		case 'b':
-			b.black.bishops |= 1 << i
+			b.Black.bishops |= 1 << i
 		case 'r':
-			b.black.rooks |= 1 << i
+			b.Black.rooks |= 1 << i
 		case 'q':
-			b.black.queens |= 1 << i
+			b.Black.queens |= 1 << i
 		case 'k':
-			b.black.kings |= 1 << i
+			b.Black.kings |= 1 << i
 		case 'P':
-			b.white.pawns |= 1 << i
+			b.White.pawns |= 1 << i
 		case 'N':
-			b.white.knights |= 1 << i
+			b.White.knights |= 1 << i
 		case 'B':
-			b.white.bishops |= 1 << i
+			b.White.bishops |= 1 << i
 		case 'R':
-			b.white.rooks |= 1 << i
+			b.White.rooks |= 1 << i
 		case 'Q':
-			b.white.queens |= 1 << i
+			b.White.queens |= 1 << i
 		case 'K':
-			b.white.kings |= 1 << i
+			b.White.kings |= 1 << i
 		}
 	}
-	b.white.all = b.white.pawns | b.white.knights | b.white.bishops | b.white.rooks | b.white.queens | b.white.kings
-	b.black.all = b.black.pawns | b.black.knights | b.black.bishops | b.black.rooks | b.black.queens | b.black.kings
+	b.White.all = b.White.pawns | b.White.knights | b.White.bishops | b.White.rooks | b.White.queens | b.White.kings
+	b.Black.all = b.Black.pawns | b.Black.knights | b.Black.bishops | b.Black.rooks | b.Black.queens | b.Black.kings
 
 	b.Wtomove = tokens[1] == "w" || tokens[1] == "W"
 	if strings.Contains(tokens[2], "K") {

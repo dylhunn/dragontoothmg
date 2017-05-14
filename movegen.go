@@ -17,13 +17,13 @@ func (b *Board) GenerateLegalMoves() []Move {
 	// First, see if we are currently in check. If we are, invoke a special check-
 	// evasion move generator.
 	var kingLocation uint8
-	var ourPiecesPtr *bitboards
+	var ourPiecesPtr *Bitboards
 	if b.Wtomove { // assumes only one king
-		kingLocation = uint8(bits.TrailingZeros64(b.white.kings))
-		ourPiecesPtr = &(b.white)
+		kingLocation = uint8(bits.TrailingZeros64(b.White.kings))
+		ourPiecesPtr = &(b.White)
 	} else {
-		kingLocation = uint8(bits.TrailingZeros64(b.black.kings))
-		ourPiecesPtr = &(b.black)
+		kingLocation = uint8(bits.TrailingZeros64(b.Black.kings))
+		ourPiecesPtr = &(b.Black)
 	}
 	kingAttackers, blockerDestinations := b.countAttacks(b.Wtomove, kingLocation, 2)
 	if kingAttackers >= 2 { // Under multiple attack, we must move the king.
@@ -68,21 +68,21 @@ func (b *Board) GenerateLegalMoves() []Move {
 // Return a bitboard of all pieces that are pinned.
 func (b *Board) generatePinnedMoves(moveList *[]Move, allowDest uint64) uint64 {
 	var ourKingIdx uint8
-	var ourPieces, oppPieces *bitboards
+	var ourPieces, oppPieces *Bitboards
 	var allPinnedPieces uint64 = 0
 	var pawnPushDirection int
 	var doublePushRank, ourPromotionRank uint64
 	if b.Wtomove { // Assumes only one king on the board
-		ourKingIdx = uint8(bits.TrailingZeros64(b.white.kings))
-		ourPieces = &(b.white)
-		oppPieces = &(b.black)
+		ourKingIdx = uint8(bits.TrailingZeros64(b.White.kings))
+		ourPieces = &(b.White)
+		oppPieces = &(b.Black)
 		pawnPushDirection = 1
 		doublePushRank = onlyRank[3]
 		ourPromotionRank = onlyRank[7]
 	} else {
-		ourKingIdx = uint8(bits.TrailingZeros64(b.black.kings))
-		ourPieces = &(b.black)
-		oppPieces = &(b.white)
+		ourKingIdx = uint8(bits.TrailingZeros64(b.Black.kings))
+		ourPieces = &(b.Black)
+		oppPieces = &(b.White)
 		pawnPushDirection = -1
 		doublePushRank = onlyRank[4]
 		ourPromotionRank = onlyRank[0]
@@ -231,13 +231,13 @@ func (b *Board) pawnPushes(moveList *[]Move, nonpinned uint64, allowDest uint64)
 
 // A helper function that produces bitboards of valid pawn push locations.
 func (b *Board) pawnPushBitboards(nonpinned uint64) (targets uint64, doubleTargets uint64) {
-	free := (^b.white.all) & (^b.black.all)
+	free := (^b.White.all) & (^b.Black.all)
 	if b.Wtomove {
-		movableWhitePawns := b.white.pawns & nonpinned
+		movableWhitePawns := b.White.pawns & nonpinned
 		targets = movableWhitePawns << 8 & free
 		doubleTargets = targets << 8 & onlyRank[3] & free
 	} else {
-		movableBlackPawns := b.black.pawns & nonpinned
+		movableBlackPawns := b.Black.pawns & nonpinned
 		targets = movableBlackPawns >> 8 & free
 		doubleTargets = targets >> 8 & onlyRank[4] & free
 	}
@@ -273,16 +273,16 @@ func (b *Board) pawnCaptures(moveList *[]Move, nonpinned uint64, allowDest uint6
 			if uint8(target) == b.enpassant && b.enpassant != 0 {
 				// Apply, check actual legality, then unapply
 				// Warning: not thread safe
-				var ourPieces, oppPieces *bitboards
+				var ourPieces, oppPieces *Bitboards
 				var enpassantEnemy uint8
 				if b.Wtomove {
 					enpassantEnemy = uint8(move.To()) - 8
-					ourPieces = &(b.white)
-					oppPieces = &(b.black)
+					ourPieces = &(b.White)
+					oppPieces = &(b.Black)
 				} else {
 					enpassantEnemy = uint8(move.To()) + 8
-					ourPieces = &(b.black)
-					oppPieces = &(b.white)
+					ourPieces = &(b.Black)
+					oppPieces = &(b.White)
 				}
 				ourPieces.pawns &= ^(uint64(1) << move.From())
 				ourPieces.all &= ^(uint64(1) << move.From())
@@ -324,13 +324,13 @@ func (b *Board) pawnCaptureBitboards(nonpinned uint64) (east uint64, west uint64
 		targets = (1 << b.enpassant)
 	}
 	if b.Wtomove {
-		targets |= b.black.all
-		ourpawns := b.white.pawns & nonpinned
+		targets |= b.Black.all
+		ourpawns := b.White.pawns & nonpinned
 		east = ourpawns << 9 & notAFile & targets
 		west = ourpawns << 7 & notHFile & targets
 	} else {
-		targets |= b.white.all
-		ourpawns := b.black.pawns & nonpinned
+		targets |= b.White.all
+		ourpawns := b.Black.pawns & nonpinned
 		east = ourpawns >> 7 & notAFile & targets
 		west = ourpawns >> 9 & notHFile & targets
 	}
@@ -342,11 +342,11 @@ func (b *Board) pawnCaptureBitboards(nonpinned uint64) (east uint64, west uint64
 func (b *Board) knightMoves(moveList *[]Move, nonpinned uint64, allowDest uint64) {
 	var ourKnights, noFriendlyPieces uint64
 	if b.Wtomove {
-		ourKnights = b.white.knights & nonpinned
-		noFriendlyPieces = (^b.white.all)
+		ourKnights = b.White.knights & nonpinned
+		noFriendlyPieces = (^b.White.all)
 	} else {
-		ourKnights = b.black.knights & nonpinned
-		noFriendlyPieces = (^b.black.all)
+		ourKnights = b.Black.knights & nonpinned
+		noFriendlyPieces = (^b.Black.all)
 	}
 	for ourKnights != 0 {
 		currentKnight := bits.TrailingZeros64(ourKnights)
@@ -357,7 +357,7 @@ func (b *Board) knightMoves(moveList *[]Move, nonpinned uint64, allowDest uint64
 }
 
 // Computes king moves without castling.
-func (b *Board) kingPushes(moveList *[]Move, ptrToOurBitboards *bitboards) {
+func (b *Board) kingPushes(moveList *[]Move, ptrToOurBitboards *Bitboards) {
 	ourKingLocation := uint8(bits.TrailingZeros64(ptrToOurBitboards.kings))
 	noFriendlyPieces := ^(ptrToOurBitboards.all)
 
@@ -392,11 +392,11 @@ func (b *Board) kingMoves(moveList *[]Move) {
 	// castling
 	var ourKingLocation uint8
 	var canCastleQueenside, canCastleKingside bool
-	var ptrToOurBitboards *bitboards
-	allPieces := b.white.all | b.black.all
+	var ptrToOurBitboards *Bitboards
+	allPieces := b.White.all | b.Black.all
 	if b.Wtomove {
-		ourKingLocation = uint8(bits.TrailingZeros64(b.white.kings))
-		ptrToOurBitboards = &(b.white)
+		ourKingLocation = uint8(bits.TrailingZeros64(b.White.kings))
+		ptrToOurBitboards = &(b.White)
 		// To castle, we must have rights and a clear path
 		kingsideClear := allPieces&((1<<5)|(1<<6)) == 0
 		queensideClear := allPieces&((1<<3)|(1<<2)|(1<<1)) == 0
@@ -406,8 +406,8 @@ func (b *Board) kingMoves(moveList *[]Move) {
 		canCastleKingside = b.whiteCanCastleKingside() &&
 			kingsideClear && !b.anyUnderDirectAttack(true, 5, 6)
 	} else {
-		ourKingLocation = uint8(bits.TrailingZeros64(b.black.kings))
-		ptrToOurBitboards = &(b.black)
+		ourKingLocation = uint8(bits.TrailingZeros64(b.Black.kings))
+		ptrToOurBitboards = &(b.Black)
 		kingsideClear := allPieces&((1<<61)|(1<<62)) == 0
 		queensideClear := allPieces&((1<<57)|(1<<58)|(1<<59)) == 0
 		// skip the king square, since this won't be called while in check
@@ -436,13 +436,13 @@ func (b *Board) kingMoves(moveList *[]Move) {
 func (b *Board) rookMoves(moveList *[]Move, nonpinned uint64, allowDest uint64) {
 	var ourRooks, friendlyPieces uint64
 	if b.Wtomove {
-		ourRooks = b.white.rooks & nonpinned
-		friendlyPieces = b.white.all
+		ourRooks = b.White.rooks & nonpinned
+		friendlyPieces = b.White.all
 	} else {
-		ourRooks = b.black.rooks & nonpinned
-		friendlyPieces = b.black.all
+		ourRooks = b.Black.rooks & nonpinned
+		friendlyPieces = b.Black.all
 	}
-	allPieces := b.white.all | b.black.all
+	allPieces := b.White.all | b.Black.all
 	for ourRooks != 0 {
 		currRook := uint8(bits.TrailingZeros64(ourRooks))
 		ourRooks &= ourRooks - 1
@@ -456,13 +456,13 @@ func (b *Board) rookMoves(moveList *[]Move, nonpinned uint64, allowDest uint64) 
 func (b *Board) bishopMoves(moveList *[]Move, nonpinned uint64, allowDest uint64) {
 	var ourBishops, friendlyPieces uint64
 	if b.Wtomove {
-		ourBishops = b.white.bishops & nonpinned
-		friendlyPieces = b.white.all
+		ourBishops = b.White.bishops & nonpinned
+		friendlyPieces = b.White.all
 	} else {
-		ourBishops = b.black.bishops & nonpinned
-		friendlyPieces = b.black.all
+		ourBishops = b.Black.bishops & nonpinned
+		friendlyPieces = b.Black.all
 	}
-	allPieces := b.white.all | b.black.all
+	allPieces := b.White.all | b.Black.all
 	for ourBishops != 0 {
 		currBishop := uint8(bits.TrailingZeros64(ourBishops))
 		ourBishops &= ourBishops - 1
@@ -476,13 +476,13 @@ func (b *Board) bishopMoves(moveList *[]Move, nonpinned uint64, allowDest uint64
 func (b *Board) queenMoves(moveList *[]Move, nonpinned uint64, allowDest uint64) {
 	var ourQueens, friendlyPieces uint64
 	if b.Wtomove {
-		ourQueens = b.white.queens & nonpinned
-		friendlyPieces = b.white.all
+		ourQueens = b.White.queens & nonpinned
+		friendlyPieces = b.White.all
 	} else {
-		ourQueens = b.black.queens & nonpinned
-		friendlyPieces = b.black.all
+		ourQueens = b.Black.queens & nonpinned
+		friendlyPieces = b.Black.all
 	}
-	allPieces := b.white.all | b.black.all
+	allPieces := b.White.all | b.Black.all
 	for ourQueens != 0 {
 		currQueen := uint8(bits.TrailingZeros64(ourQueens))
 		ourQueens &= ourQueens - 1
@@ -521,9 +521,9 @@ func (b *Board) ourKingInCheck() bool {
 	byBlack := b.Wtomove
 	var origin uint8
 	if b.Wtomove {
-		origin = uint8(bits.TrailingZeros64(b.white.kings))
+		origin = uint8(bits.TrailingZeros64(b.White.kings))
 	} else {
-		origin = uint8(bits.TrailingZeros64(b.black.kings))
+		origin = uint8(bits.TrailingZeros64(b.Black.kings))
 	}
 	count, _ := b.countAttacks(byBlack, origin, 1)
 	return count >= 1
@@ -541,12 +541,12 @@ func (b *Board) underDirectAttack(byBlack bool, origin uint8) bool {
 func (b *Board) countAttacks(byBlack bool, origin uint8, abortEarly int) (int, uint64) {
 	numAttacks := 0
 	var blockerDestinations uint64 = 0
-	allPieces := b.white.all | b.black.all
-	var opponentPieces *bitboards
+	allPieces := b.White.all | b.Black.all
+	var opponentPieces *Bitboards
 	if byBlack {
-		opponentPieces = &(b.black)
+		opponentPieces = &(b.Black)
 	} else {
-		opponentPieces = &(b.white)
+		opponentPieces = &(b.White)
 	}
 	// find attacking knights
 	knight_attackers := knightMasks[origin] & opponentPieces.knights

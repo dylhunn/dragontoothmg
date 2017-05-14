@@ -5,23 +5,23 @@ package dragontoothmg
 // If the move is not valid, this function has undefined behavior.
 func (b *Board) Apply(m Move) func() {
 	// Configure data about which pieces move
-	var ourBitboardPtr, oppBitboardPtr *bitboards
+	var ourBitboardPtr, oppBitboardPtr *Bitboards
 	var epDelta int8                                // add this to the e.p. square to find the captured pawn
 	var oppStartingRankBb, ourStartingRankBb uint64 // the starting rank of out opponent's major pieces
 	// the constant that represents the index into pieceSquareZobristC for the pawn of our color
 	var ourPiecesPawnZobristIndex int
 	var oppPiecesPawnZobristIndex int
 	if b.Wtomove {
-		ourBitboardPtr = &(b.white)
-		oppBitboardPtr = &(b.black)
+		ourBitboardPtr = &(b.White)
+		oppBitboardPtr = &(b.Black)
 		epDelta = -8
 		oppStartingRankBb = onlyRank[7]
 		ourStartingRankBb = onlyRank[0]
 		ourPiecesPawnZobristIndex = 0
 		oppPiecesPawnZobristIndex = 6
 	} else {
-		ourBitboardPtr = &(b.black)
-		oppBitboardPtr = &(b.white)
+		ourBitboardPtr = &(b.Black)
+		oppBitboardPtr = &(b.White)
 		epDelta = 8
 		oppStartingRankBb = onlyRank[0]
 		ourStartingRankBb = onlyRank[7]
@@ -225,7 +225,7 @@ func (b *Board) Apply(m Move) func() {
 	return unapply
 }
 
-func determinePieceType(ourBitboardPtr *bitboards, squareMask uint64) (Piece, *uint64) {
+func determinePieceType(ourBitboardPtr *Bitboards, squareMask uint64) (Piece, *uint64) {
 	var pieceType Piece = Nothing
 	pieceTypeBitboard := &(ourBitboardPtr.all)
 	if squareMask&ourBitboardPtr.pawns != 0 {

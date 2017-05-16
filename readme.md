@@ -29,7 +29,7 @@ Here is a summary of the important files in the repo:
 Installing and building the library
 ===================================
 
-This project requires Go 1.9. As of the time of writing, 1.9 is still a pre-release version. You can get it by cloning the official [Go Repo](https://github.com/golang/go), and building it yourself.
+This project requires Go 1.9. As of the time of writing, 1.9 is still a pre-release version. You can get it by cloning the official [Go Repo](https://github.com/golang/go), and building it yourself. There are [instructions for this](https://golang.org/doc/install/source). (Once Go 1.9 comes out in a few weeks, this will become unnecessary.)
 
 To use this package in your own code, make sure your `GO_PATH` environment variable is correctly set, and install it using `go get`:
 

@@ -26,6 +26,22 @@ Here is a summary of the important files in the repo:
 | apply.go     | This provides functions to apply and unapply moves to the board. (Useful for Perft as well.)                                                         |
 | perft.go     | The actual Perft implementation is contained in this file.                                                                                           |
 
+API
+===
+
+Here are significant API calls that this library provides. For invocation details, see the [docs](https://godoc.org/github.com/dylhunn/dragontoothmg).
+
+| **Function**         | **Description**                                                                                                                                         |
+|--------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
+| GenerateLegalMoves   | A fast way to generate all moves in the current position. |
+| Board.Apply     | Apply a move to the board. Returns a function that allows it to be unapplied.                                                         |                                                      |
+| Perft     | Standard "performance test," which recursively counts all of the moves from a position to a given depth.                                                         |
+| ParseFen     | Construct a Board from a standard chess FEN string.                                               |
+| Board.ToFen | Convert a Board to a standard FEN string.         |
+| Board.Hash     | Generate a hash value for a Board, using the Zobrist method.                                                                                           |
+| ParseMove     | Parse a long-algbraic notation move from a string.                                                                                           |
+| Move.String     | Convert a Move to a string, in normal long-algebraic notation.                                                                                           |
+
 Installing and building the library
 ===================================
 

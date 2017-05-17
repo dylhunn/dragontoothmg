@@ -14,6 +14,18 @@ func testDivide(t *testing.T) {
 }
 
 // Uncomment lines in the solution maps for more thorough testing, although this takes longer
+func TestMate(t *testing.T) {
+	perftSolutions := map[int]int64{
+		1: 0,
+		2: 0,
+		3: 0,
+		4: 0,
+	}
+	pos := "5k1R/5p2/5P2/8/8/2r5/2rR2K1/4B3 b - - 0 1"
+	checkPerftResults(pos, perftSolutions, t)
+}
+
+// Uncomment lines in the solution maps for more thorough testing, although this takes longer
 func TestStartingPosition(t *testing.T) {
 	perftSolutions := map[int]int64{
 		1: 20,

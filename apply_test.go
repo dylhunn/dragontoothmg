@@ -55,6 +55,8 @@ func TestApplyUnapply(t *testing.T) {
 		"r3k2r/Pppp1ppp/1b3nbN/nPB5/B1P1P3/q4N2/P2P2PP/r2Q1RK1 w kq - 0 0": parseMove("d1a1"),
 		// Promoted rook captures pawn, shouldn't strip castle rights
 		"r3k2r/Pppp1ppp/1b3nbN/nPB5/2P1P3/qB3N2/P2P2PP/r2Q1RK1 b kq - 0 0": parseMove("a1a2"),
+		// Moving toward a forced mate
+		"5k2/5p2/5P2/8/8/2r5/2rR2K1/4B2R w - - 0 1": parseMove("h1h8"),
 	}
 	results := map[string]string{
 		"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 0":                "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 0",
@@ -76,6 +78,7 @@ func TestApplyUnapply(t *testing.T) {
 		"r3k2r/p1ppqpb1/1n2pnp1/1b1PN3/1p2P3/P1N2Q1p/1PPBBPPP/R3K2R w KQkq - 0 0": "r3k2r/p1ppqpb1/1n2pnp1/1b1PN3/1p2P3/P1N2Q1p/1PPBBPPP/R4RK1 b kq - 0 0",
 		"r3k2r/Pppp1ppp/1b3nbN/nPB5/B1P1P3/q4N2/P2P2PP/r2Q1RK1 w kq - 0 0":        "r3k2r/Pppp1ppp/1b3nbN/nPB5/B1P1P3/q4N2/P2P2PP/Q4RK1 b kq - 0 0",
 		"r3k2r/Pppp1ppp/1b3nbN/nPB5/2P1P3/qB3N2/P2P2PP/r2Q1RK1 b kq - 0 0":        "r3k2r/Pppp1ppp/1b3nbN/nPB5/2P1P3/qB3N2/r2P2PP/3Q1RK1 w kq - 0 1",
+		"5k2/5p2/5P2/8/8/2r5/2rR2K1/4B2R w - - 0 1":                               "5k1R/5p2/5P2/8/8/2r5/2rR2K1/4B3 b - - 0 1",
 	}
 	for k, v := range movesMap {
 		b := ParseFen(k)

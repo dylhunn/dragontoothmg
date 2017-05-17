@@ -139,10 +139,10 @@ func (b *Board) Apply(m Move) func() {
 
 	// If a rook was captured, it strips castling rights
 	if capturedPieceType == Rook {
-		if  m.To()%8 == 7 && toBitboard&oppStartingRankBb != 0 && b.oppCanCastleKingside(){ // captured king rook
+		if m.To()%8 == 7 && toBitboard&oppStartingRankBb != 0 && b.oppCanCastleKingside() { // captured king rook
 			b.flipOppKingsideCastle()
 			flippedOppKsCastle = true
-		} else if m.To()%8 == 0 && toBitboard&oppStartingRankBb != 0 && b.oppCanCastleQueenside(){ // queen rooks
+		} else if m.To()%8 == 0 && toBitboard&oppStartingRankBb != 0 && b.oppCanCastleQueenside() { // queen rooks
 			b.flipOppQueensideCastle()
 			flippedOppQsCastle = true
 		}
@@ -162,7 +162,6 @@ func (b *Board) Apply(m Move) func() {
 		b.hash ^= whiteToMoveZobristC
 		b.Wtomove = !b.Wtomove
 
-
 		// Unapply move
 		ourBitboardPtr.All &= ^toBitboard                                                             // remove at "to"
 		ourBitboardPtr.All |= fromBitboard                                                            // add at "from"
@@ -170,9 +169,9 @@ func (b *Board) Apply(m Move) func() {
 		*pieceTypeBitboard |= fromBitboard                                                            // add at "from"
 		b.hash ^= pieceSquareZobristC[(int(promotedToPieceType)-1)+ourPiecesPawnZobristIndex][m.To()] // remove the piece at "to"
 		b.hash ^= pieceSquareZobristC[(int(pieceType)-1)+ourPiecesPawnZobristIndex][m.From()]         // add the piece at "from"
-		
+
 		// Restore captured piece (excluding e.p.)
-		if capturedPieceType != Nothing {                                                             // doesn't consider e.p. captures
+		if capturedPieceType != Nothing { // doesn't consider e.p. captures
 			*capturedBitboard |= toBitboard
 			oppBitboardPtr.All |= toBitboard
 			// restore the captured piece to the hash (excluding e.p.)
@@ -191,7 +190,7 @@ func (b *Board) Apply(m Move) func() {
 		}
 
 		// Unapply en-passant square change, and capture if necessary
-		b.hash ^= uint64(b.enpassant)     // undo the new en passant square from the hash
+		b.hash ^= uint64(b.enpassant)        // undo the new en passant square from the hash
 		b.hash ^= uint64(oldEpCaptureSquare) // restore the old one to the hash
 		b.enpassant = oldEpCaptureSquare
 		if actuallyPerformedEpCapture {
@@ -206,7 +205,7 @@ func (b *Board) Apply(m Move) func() {
 		if !b.Wtomove {
 			b.Fullmoveno-- // decrement after undoing black's move
 		}
-		
+
 		// Restore castling flags
 		// Must update castling flags AFTER turn swap
 		if flippedKsCastle {

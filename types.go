@@ -173,6 +173,9 @@ func (m *Move) Setpromote(p Piece) *Move {
 func (m *Move) String() string {
 	/*return fmt.Sprintf("[from: %v, to: %v, promote: %v]",
 	IndexToAlgebraic(Square(m.From())), IndexToAlgebraic(Square(m.To())), m.Promote())*/
+	if *m == 0 {
+		return "0000"
+	}
 	result := IndexToAlgebraic(Square(m.From())) + IndexToAlgebraic(Square(m.To()))
 	switch m.Promote() {
 	case Queen:

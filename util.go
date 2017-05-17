@@ -58,6 +58,9 @@ func (b *Bitboards) sanityCheck() {
 // e1e2 b4d6 e7e8q a2a1n
 // TODO(dylhunn): Make the parser more forgiving. Eg: 0-0, O-O-O, a2-a3, D3D4
 func ParseMove(movestr string) (Move, error) {
+	if movestr == "0000" {
+		return 0, nil
+	}
 	var mv Move
 	if len(movestr) < 4 || len(movestr) > 5 {
 		return mv, errors.New("Invalid move to parse.")

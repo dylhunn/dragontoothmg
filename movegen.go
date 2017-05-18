@@ -371,7 +371,7 @@ func (b *Board) kingPushes(moveList *[]Move, ptrToOurBitboards *Bitboards) {
 	for targets != 0 {
 		target := bits.TrailingZeros64(targets)
 		targets &= targets - 1
-		if b.underDirectAttack(b.Wtomove, uint8(target)) {
+		if b.UnderDirectAttack(b.Wtomove, uint8(target)) {
 			continue
 		}
 		var move Move
@@ -510,7 +510,7 @@ func genMovesFromTargets(moveList *[]Move, origin Square, targets uint64) {
 // by the opponent. Potentially expensive.
 func (b *Board) anyUnderDirectAttack(byBlack bool, squares ...uint8) bool {
 	for _, v := range squares {
-		if b.underDirectAttack(byBlack, v) {
+		if b.UnderDirectAttack(byBlack, v) {
 			return true
 		}
 	}
@@ -529,7 +529,8 @@ func (b *Board) ourKingInCheck() bool {
 	return count >= 1
 }
 
-func (b *Board) underDirectAttack(byBlack bool, origin uint8) bool {
+// Determine if a square is under attack. Potentially expensive.
+func (b *Board) UnderDirectAttack(byBlack bool, origin uint8) bool {
 	count, _ := b.countAttacks(byBlack, origin, 1)
 	return count >= 1
 }

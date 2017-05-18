@@ -172,7 +172,7 @@ func TestUnderDirectAttack(t *testing.T) {
 		algebraicToIndexFatal("b7"): false,
 	}
 	for k, v := range solutionsByBlack {
-		attacked := b1.underDirectAttack(true, k)
+		attacked := b1.UnderDirectAttack(true, k)
 		if attacked != v {
 			t.Error("Under attack failed for position", b1.ToFen(), "\nat coord ", IndexToAlgebraic(Square(k)))
 		}
@@ -190,7 +190,7 @@ func TestUnderDirectAttack(t *testing.T) {
 		algebraicToIndexFatal("e8"): false,
 	}
 	for k, v := range solutionsByWhite {
-		attacked := b2.underDirectAttack(false, k)
+		attacked := b2.UnderDirectAttack(false, k)
 		if attacked != v {
 			t.Error("Under attack failed for position", b2.ToFen(), "\nat coord ", IndexToAlgebraic(Square(k)))
 		}

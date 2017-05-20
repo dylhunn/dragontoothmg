@@ -290,7 +290,7 @@ func (b *Board) pawnCaptures(moveList *[]Move, nonpinned uint64, allowDest uint6
 				ourPieces.All |= (uint64(1) << move.To())
 				oppPieces.Pawns &= ^(uint64(1) << enpassantEnemy)
 				oppPieces.All &= ^(uint64(1) << enpassantEnemy)
-				kingInCheck := b.ourKingInCheck()
+				kingInCheck := b.OurKingInCheck()
 				ourPieces.Pawns |= (uint64(1) << move.From())
 				ourPieces.All |= (uint64(1) << move.From())
 				ourPieces.Pawns &= ^(uint64(1) << move.To())
@@ -517,7 +517,7 @@ func (b *Board) anyUnderDirectAttack(byBlack bool, squares ...uint8) bool {
 	return false
 }
 
-func (b *Board) ourKingInCheck() bool {
+func (b *Board) OurKingInCheck() bool {
 	byBlack := b.Wtomove
 	var origin uint8
 	if b.Wtomove {

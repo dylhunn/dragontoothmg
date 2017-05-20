@@ -39,6 +39,17 @@ func recomputeBoardHash(b *Board) uint64 {
 	return hash
 }
 
+func IsCapture(m Move, b *Board) bool {
+	toBitboard := (uint64(1) << m.To())
+	if (toBitboard&b.White.All != 0) || (toBitboard&b.Black.All != 0) {
+		return true
+	}
+	// Is it an en passant capture?
+	fromBitboard := (uint64(1) << m.From())
+	originIsPawn := fromBitboard&b.White.Pawns != 0 || fromBitboard&b.Black.Pawns != 0
+	return originIsPawn && (toBitboard&(uint64(1) << b.enpassant) != 0)
+}
+
 // A testing-use function that ignores the error output
 func parseMove(movestr string) Move {
 	res, _ := ParseMove(movestr)

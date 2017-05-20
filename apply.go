@@ -36,6 +36,15 @@ func (b *Board) Apply(m Move) func() {
 	var oldRookLoc, newRookLoc uint8
 	var flippedKsCastle, flippedQsCastle, flippedOppKsCastle, flippedOppQsCastle bool
 
+	// If it is any kind of capture or pawn move, reset halfmove clock.
+	resetHalfmoveClockFrom := -1
+	if IsCapture(m, b) || pieceType == Pawn { 
+		resetHalfmoveClockFrom = int(b.Halfmoveclock)
+		b.Halfmoveclock = 0 // reset halfmove clock
+	} else {
+		b.Halfmoveclock++
+	}
+
 	// King moves strip castling rights
 	if pieceType == King {
 		// TODO(dylhunn): do this without a branch
@@ -147,7 +156,6 @@ func (b *Board) Apply(m Move) func() {
 			flippedOppQsCastle = true
 		}
 	}
-
 	// flip the side to move in the hash
 	b.hash ^= whiteToMoveZobristC
 	b.Wtomove = !b.Wtomove
@@ -161,6 +169,13 @@ func (b *Board) Apply(m Move) func() {
 		// Flip the player to move
 		b.hash ^= whiteToMoveZobristC
 		b.Wtomove = !b.Wtomove
+
+		// Restore the halfmove clock
+		if resetHalfmoveClockFrom == -1 {
+			b.Halfmoveclock--
+		} else {
+			b.Halfmoveclock = uint8(resetHalfmoveClockFrom)
+		}
 
 		// Unapply move
 		ourBitboardPtr.All &= ^toBitboard                                                             // remove at "to"

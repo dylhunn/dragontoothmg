@@ -91,12 +91,12 @@ func (b *Board) generatePinnedMoves(moveList *[]Move, allowDest uint64) uint64 {
 
 	// Calculate king moves as if it was a rook.
 	// "king targets" includes our own friendly pieces, for the purpose of identifying pins.
-	kingOrthoTargets := calculateRookMoveBitboard(ourKingIdx, allPieces)
+	kingOrthoTargets := CalculateRookMoveBitboard(ourKingIdx, allPieces)
 	oppRooks := oppPieces.Rooks | oppPieces.Queens
 	for oppRooks != 0 { // For each opponent ortho slider
 		currRookIdx := uint8(bits.TrailingZeros64(oppRooks))
 		oppRooks &= oppRooks - 1
-		rookTargets := calculateRookMoveBitboard(currRookIdx, allPieces) & (^(oppPieces.All))
+		rookTargets := CalculateRookMoveBitboard(currRookIdx, allPieces) & (^(oppPieces.All))
 		// A piece is pinned iff it falls along both attack rays.
 		pinnedPiece := rookTargets & kingOrthoTargets & ourPieces.All
 		if pinnedPiece == 0 { // there is no pin
@@ -126,7 +126,7 @@ func (b *Board) generatePinnedMoves(moveList *[]Move, allowDest uint64) uint64 {
 			continue
 		}
 		// all ortho moves, as if it was not pinned
-		pinnedPieceAllMoves := calculateRookMoveBitboard(pinnedPieceIdx, allPieces) & (^(ourPieces.All))
+		pinnedPieceAllMoves := CalculateRookMoveBitboard(pinnedPieceIdx, allPieces) & (^(ourPieces.All))
 		// actually available moves
 		pinnedTargets := pinnedPieceAllMoves & (rookTargets | kingOrthoTargets | (uint64(1) << currRookIdx))
 		pinnedTargets &= allowDest
@@ -135,12 +135,12 @@ func (b *Board) generatePinnedMoves(moveList *[]Move, allowDest uint64) uint64 {
 
 	// Calculate king moves as if it was a bishop.
 	// "king targets" includes our own friendly pieces, for the purpose of identifying pins.
-	kingDiagTargets := calculateBishopMoveBitboard(ourKingIdx, allPieces)
+	kingDiagTargets := CalculateBishopMoveBitboard(ourKingIdx, allPieces)
 	oppBishops := oppPieces.Bishops | oppPieces.Queens
 	for oppBishops != 0 {
 		currBishopIdx := uint8(bits.TrailingZeros64(oppBishops))
 		oppBishops &= oppBishops - 1
-		bishopTargets := calculateBishopMoveBitboard(currBishopIdx, allPieces) & (^(oppPieces.All))
+		bishopTargets := CalculateBishopMoveBitboard(currBishopIdx, allPieces) & (^(oppPieces.All))
 		pinnedPiece := bishopTargets & kingDiagTargets & ourPieces.All
 		if pinnedPiece == 0 { // there is no pin
 			continue
@@ -180,7 +180,7 @@ func (b *Board) generatePinnedMoves(moveList *[]Move, allowDest uint64) uint64 {
 			continue
 		}
 		// all diag moves, as if it was not pinned
-		pinnedPieceAllMoves := calculateBishopMoveBitboard(pinnedPieceIdx, allPieces) & (^(ourPieces.All))
+		pinnedPieceAllMoves := CalculateBishopMoveBitboard(pinnedPieceIdx, allPieces) & (^(ourPieces.All))
 		// actually available moves
 		pinnedTargets := pinnedPieceAllMoves & (bishopTargets | kingDiagTargets | (uint64(1) << currBishopIdx))
 		pinnedTargets &= allowDest
@@ -446,7 +446,7 @@ func (b *Board) rookMoves(moveList *[]Move, nonpinned uint64, allowDest uint64) 
 	for ourRooks != 0 {
 		currRook := uint8(bits.TrailingZeros64(ourRooks))
 		ourRooks &= ourRooks - 1
-		targets := calculateRookMoveBitboard(currRook, allPieces) & (^friendlyPieces) & allowDest
+		targets := CalculateRookMoveBitboard(currRook, allPieces) & (^friendlyPieces) & allowDest
 		genMovesFromTargets(moveList, Square(currRook), targets)
 	}
 }
@@ -466,7 +466,7 @@ func (b *Board) bishopMoves(moveList *[]Move, nonpinned uint64, allowDest uint64
 	for ourBishops != 0 {
 		currBishop := uint8(bits.TrailingZeros64(ourBishops))
 		ourBishops &= ourBishops - 1
-		targets := calculateBishopMoveBitboard(currBishop, allPieces) & (^friendlyPieces) & allowDest
+		targets := CalculateBishopMoveBitboard(currBishop, allPieces) & (^friendlyPieces) & allowDest
 		genMovesFromTargets(moveList, Square(currBishop), targets)
 	}
 }
@@ -487,10 +487,10 @@ func (b *Board) queenMoves(moveList *[]Move, nonpinned uint64, allowDest uint64)
 		currQueen := uint8(bits.TrailingZeros64(ourQueens))
 		ourQueens &= ourQueens - 1
 		// bishop motion
-		diag_targets := calculateBishopMoveBitboard(currQueen, allPieces) & (^friendlyPieces) & allowDest
+		diag_targets := CalculateBishopMoveBitboard(currQueen, allPieces) & (^friendlyPieces) & allowDest
 		genMovesFromTargets(moveList, Square(currQueen), diag_targets)
 		// rook motion
-		ortho_targets := calculateRookMoveBitboard(currQueen, allPieces) & (^friendlyPieces) & allowDest
+		ortho_targets := CalculateRookMoveBitboard(currQueen, allPieces) & (^friendlyPieces) & allowDest
 		genMovesFromTargets(moveList, Square(currQueen), ortho_targets)
 	}
 }
@@ -570,7 +570,7 @@ func (b *Board) countAttacks(byBlack bool, origin uint8, abortEarly int) (int, u
 	for diag_attackers != 0 {
 		curr_attacker := uint8(bits.TrailingZeros64(diag_attackers))
 		diag_attackers &= diag_attackers - 1
-		diag_attacks := calculateBishopMoveBitboard(curr_attacker, allPieces)
+		diag_attacks := CalculateBishopMoveBitboard(curr_attacker, allPieces)
 		attackRay := diag_attacks & origin_diag_rays
 		blockerDestinations |= attackRay
 	}
@@ -589,7 +589,7 @@ func (b *Board) countAttacks(byBlack bool, origin uint8, abortEarly int) (int, u
 	for ortho_attackers != 0 {
 		curr_attacker := uint8(bits.TrailingZeros64(ortho_attackers))
 		ortho_attackers &= ortho_attackers - 1
-		ortho_attacks := calculateRookMoveBitboard(curr_attacker, allPieces)
+		ortho_attacks := CalculateRookMoveBitboard(curr_attacker, allPieces)
 		attackRay := ortho_attacks & origin_ortho_rays
 		blockerDestinations |= attackRay
 	}
@@ -625,8 +625,9 @@ func (b *Board) countAttacks(byBlack bool, origin uint8, abortEarly int) (int, u
 
 // Calculates the attack bitboard for a rook. This might include targeted squares
 // that are actually friendly pieces, so the proper usage is:
-// rookTargets := calculateRookMoveBitboard(myRookLoc, allPieces) & (^myPieces)
-func calculateRookMoveBitboard(currRook uint8, allPieces uint64) uint64 {
+// rookTargets := CalculateRookMoveBitboard(myRookLoc, allPieces) & (^myPieces)
+// Externally useful for evaluation functions.
+func CalculateRookMoveBitboard(currRook uint8, allPieces uint64) uint64 {
 	blockers := magicRookBlockerMasks[currRook] & allPieces
 	dbindex := (blockers * magicNumberRook[currRook]) >> magicRookShifts[currRook]
 	targets := magicMovesRook[currRook][dbindex]
@@ -635,8 +636,9 @@ func calculateRookMoveBitboard(currRook uint8, allPieces uint64) uint64 {
 
 // Calculates the attack bitboard for a bishop. This might include targeted squares
 // that are actually friendly pieces, so the proper usage is:
-// bishopTargets := calculateBishopMoveBitboard(myBishopLoc, allPieces) & (^myPieces)
-func calculateBishopMoveBitboard(currBishop uint8, allPieces uint64) uint64 {
+// bishopTargets := CalculateBishopMoveBitboard(myBishopLoc, allPieces) & (^myPieces)
+// Externally useful for evaluation functions.
+func CalculateBishopMoveBitboard(currBishop uint8, allPieces uint64) uint64 {
 	blockers := magicBishopBlockerMasks[currBishop] & allPieces
 	dbindex := (blockers * magicNumberBishop[currBishop]) >> magicBishopShifts[currBishop]
 	targets := magicMovesBishop[currBishop][dbindex]

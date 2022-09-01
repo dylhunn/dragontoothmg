@@ -47,7 +47,43 @@ func IsCapture(m Move, b *Board) bool {
 	// Is it an en passant capture?
 	fromBitboard := (uint64(1) << m.From())
 	originIsPawn := fromBitboard&b.White.Pawns != 0 || fromBitboard&b.Black.Pawns != 0
-	return originIsPawn && (toBitboard&(uint64(1) << b.enpassant) != 0)
+	return originIsPawn && (toBitboard&(uint64(1)<<b.enpassant) != 0)
+}
+
+func GetPieceType(square uint8, b *Board) (int, bool) {
+	squareMask := uint64(1) << square
+	var isWhite bool = true
+	if b.White.All&squareMask != 0 {
+		if b.White.Pawns&squareMask != 0 {
+			return Pawn, isWhite
+		} else if b.White.Knights&squareMask != 0 {
+			return Knight, isWhite
+		} else if b.White.Bishops&squareMask != 0 {
+			return Bishop, isWhite
+		} else if b.White.Rooks&squareMask != 0 {
+			return Rook, isWhite
+		} else if b.White.Queens&squareMask != 0 {
+			return Queen, isWhite
+		} else if b.White.Kings&squareMask != 0 {
+			return King, isWhite
+		}
+	} else {
+		isWhite = false
+		if b.Black.Pawns&squareMask != 0 {
+			return Pawn, isWhite
+		} else if b.Black.Knights&squareMask != 0 {
+			return Knight, isWhite
+		} else if b.Black.Bishops&squareMask != 0 {
+			return Bishop, isWhite
+		} else if b.Black.Rooks&squareMask != 0 {
+			return Rook, isWhite
+		} else if b.Black.Queens&squareMask != 0 {
+			return Queen, isWhite
+		} else if b.Black.Kings&squareMask != 0 {
+			return King, isWhite
+		}
+	}
+	return Nothing, isWhite
 }
 
 // A testing-use function that ignores the error output
